@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="秋风起，暑却未消停。蓉城的苍穹依旧云卷天舒，秋却不是四年前的秋，我记忆里的秋应该是有雨的，凉气逼得外出的人们不得不多加几件外套。今年的秋暑意未曾停歇，火红的骄阳不舍这似水的流年。是啊，时间已悄然走过了四年，一经辗转便奔向第五个年头。 我单不知，人在一段不长也不短的时间里，可以经历无数次的选择，在每一个不起眼的日子里作出的每一个不起眼的决定，竟能发生在未来！舍弃文笔从业网安或许并非我意，也未曾作出">
+<meta property="og:type" content="article">
+<meta property="og:title" content="成都CCS网络安全大会">
+<meta property="og:url" content="http://example.com/2021/10/27/%E6%88%90%E9%83%BDCCS%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E5%A4%A7%E4%BC%9A/index.html">
+<meta property="og:site_name" content="cat-nineteen">
+<meta property="og:description" content="秋风起，暑却未消停。蓉城的苍穹依旧云卷天舒，秋却不是四年前的秋，我记忆里的秋应该是有雨的，凉气逼得外出的人们不得不多加几件外套。今年的秋暑意未曾停歇，火红的骄阳不舍这似水的流年。是啊，时间已悄然走过了四年，一经辗转便奔向第五个年头。 我单不知，人在一段不长也不短的时间里，可以经历无数次的选择，在每一个不起眼的日子里作出的每一个不起眼的决定，竟能发生在未来！舍弃文笔从业网安或许并非我意，也未曾作出">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211027162451590.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211027163320104.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211027165123049.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211027170401075.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211027170516527.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211027170632854.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211027172325695.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211027172350223.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211027172402479.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211027172427492.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211027172514088.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211027172540225.png">
+<meta property="og:image" content="c:/Users/Administrator/AppData/Roaming/Typora/typora-user-images/image-20211027172556607.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211027172629614.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211027173254716.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211027173337942.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211027173400293.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211027174409091.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211027174414052.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211027174432261.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211027174459422.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211027174741147.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211027174806465.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211027174959442.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211027175122125.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211027175145426.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211027175207058.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211027175232969.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211027180430497.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211028090823245.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211028090936831.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211028090948741.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211028091017016.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211028091053791.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211028091145502.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211028092022802.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211028092052056.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211028092052056.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211028092146025.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211028092203363.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211028092241204.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211028092245801.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211028092251114.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211028092308976.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211028092509312.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211028092525064.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211028092528892.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211028092555328.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211028092611233.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211028092620938.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211028092636682.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211028092655724.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211028092658771.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211028092702440.png">
+<meta property="article:published_time" content="2021-10-27T09:07:40.990Z">
+<meta property="article:modified_time" content="2021-10-28T03:37:38.315Z">
+<meta property="article:author" content="longer">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211027162451590.png">
+
+<link rel="canonical" href="http://example.com/2021/10/27/%E6%88%90%E9%83%BDCCS%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E5%A4%A7%E4%BC%9A/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>成都CCS网络安全大会 | cat-nineteen</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">cat-nineteen</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/10/27/%E6%88%90%E9%83%BDCCS%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E5%A4%A7%E4%BC%9A/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="longer">
+      <meta itemprop="description" content="不愿分享小故事的脚本小子成不了心灵骇客！">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="cat-nineteen">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          成都CCS网络安全大会
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-10-27 17:07:40" itemprop="dateCreated datePublished" datetime="2021-10-27T17:07:40+08:00">2021-10-27</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-10-28 11:37:38" itemprop="dateModified" datetime="2021-10-28T11:37:38+08:00">2021-10-28</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E5%A4%A7%E4%BC%9A/" itemprop="url" rel="index"><span itemprop="name">网络安全大会</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <blockquote>
+<p>秋风起，暑却未消停。蓉城的苍穹依旧云卷天舒，秋却不是四年前的秋，我记忆里的秋应该是有雨的，凉气逼得外出的人们不得不多加几件外套。今年的秋暑意未曾停歇，火红的骄阳不舍这似水的流年。是啊，时间已悄然走过了四年，一经辗转便奔向第五个年头。</p>
+<p>我单不知，人在一段不长也不短的时间里，可以经历无数次的选择，在每一个不起眼的日子里作出的每一个不起眼的决定，竟能发生在未来！舍弃文笔从业网安或许并非我意，也未曾作出从蓉城奔赴鹭岛的选择，我没有过抉择，却得到了答案。</p>
+<p>于是，我在时间的海岸线上拾起了回忆的贝壳：也许是在学校的某一个不起眼的夜晚，教室里坐着大约有三两个好同学，异口同声的说：“打进CTF线下大赛！成为远近闻名的黑客！”；也许是在每一个不起眼的课堂，老师在台上对着台下疯狂输出的同时，我在台下开着电脑冲刷着CTF的赛题……</p>
+<p>我站在鹭岛的码头上，静静看着眼前的浪花拍打。我仿佛见到了以前的自己，那个不是很努力，却又不肯轻易言弃、熟悉又陌生的身影……</p>
+</blockquote>
+<h1 id="打击黑灰产网络犯罪论坛"><a href="#打击黑灰产网络犯罪论坛" class="headerlink" title="打击黑灰产网络犯罪论坛"></a>打击黑灰产网络犯罪论坛</h1><p><strong>标签：黑灰产、网络诈骗、大数据分析、自动化流程处置</strong></p>
+<span id="more"></span>
+
+<h2 id="打击黑灰产"><a href="#打击黑灰产" class="headerlink" title="打击黑灰产"></a>打击黑灰产</h2><h3 id="全网采集（建立样本库）"><a href="#全网采集（建立样本库）" class="headerlink" title="全网采集（建立样本库）"></a>全网采集（建立样本库）</h3><ul>
+<li>公开情报（<a target="_blank" rel="noopener" href="https://www.virustotal.com/gui/home/upload%EF%BC%89">https://www.virustotal.com/gui/home/upload）</a></li>
+<li>网络巡检</li>
+<li>用户提交</li>
+<li>监管合作</li>
+</ul>
+<h3 id="解析打标（深度解析，挖掘细节信息）"><a href="#解析打标（深度解析，挖掘细节信息）" class="headerlink" title="解析打标（深度解析，挖掘细节信息）"></a>解析打标（深度解析，挖掘细节信息）</h3><ul>
+<li>静态分析</li>
+</ul>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211027162451590.png" alt="image-20211027162451590"></p>
+<ul>
+<li>动态分析</li>
+</ul>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211027163320104.png" alt="image-20211027163320104"></p>
+<h3 id="聚类分析（家族类聚、团伙挖掘）"><a href="#聚类分析（家族类聚、团伙挖掘）" class="headerlink" title="聚类分析（家族类聚、团伙挖掘）"></a>聚类分析（家族类聚、团伙挖掘）</h3><p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211027165123049.png" alt="image-20211027165123049"></p>
+<p><strong>处置权重</strong>，哪些是常被黑灰产利用的实体app，聚类分级权重；<br><strong>助力拓线</strong>，是指可以从一个黑灰产窝点牵扯出其它的黑灰产窝点。</p>
+<h3 id="溯源分析（定位）"><a href="#溯源分析（定位）" class="headerlink" title="溯源分析（定位）"></a>溯源分析（定位）</h3><p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211027170401075.png" alt="image-20211027170401075"></p>
+<p>​    <strong>0号病人</strong>，指的是黑灰产使用的电子设备信息（用的很廉价的、非大众化的）、支付账户（一般是抓新号，却有大量资金流动的账户）信息等。<br>​    <strong>符号特征</strong>，指url链接的筛查、邮箱和手机号等暴露在外的指纹信息。<br>​    <strong>基础设施</strong>，比如博彩的网站主机位置及费用、使用的框架、插件，通过渗透手段，拿下网站并抓取数据。<br>​    <strong>沉淀出以下（黑灰产）技战术</strong>：</p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211027170516527.png" alt="image-20211027170516527"></p>
+<h2 id="打击新型网络犯罪的实战过程"><a href="#打击新型网络犯罪的实战过程" class="headerlink" title="打击新型网络犯罪的实战过程"></a>打击新型网络犯罪的实战过程</h2><h3 id="测试方法"><a href="#测试方法" class="headerlink" title="测试方法"></a>测试方法</h3><p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211027170632854.png" alt="image-20211027170632854"></p>
+<p>​    对黑灰产网站进行渗透测试（一般黑灰产的安全意识比较薄弱），技战术。</p>
+<h3 id="新型网络犯罪手段"><a href="#新型网络犯罪手段" class="headerlink" title="新型网络犯罪手段"></a>新型网络犯罪手段</h3><ul>
+<li><strong>电信诈骗</strong></li>
+</ul>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211027172325695.png" alt="image-20211027172325695"></p>
+<ul>
+<li><strong>手机木马</strong></li>
+</ul>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211027172350223.png" alt="image-20211027172350223"></p>
+<ul>
+<li><strong>杀猪盘</strong></li>
+</ul>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211027172402479.png" alt="image-20211027172402479"></p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211027172427492.png" alt="image-20211027172427492"></p>
+<p>​    通过网站的登陆数据，判断黑灰产团伙的窝点位置。</p>
+<ul>
+<li><strong>理财诈骗</strong></li>
+</ul>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211027172514088.png" alt="image-20211027172514088"></p>
+<p>​    给不同的银行账户打钱（黑灰产团伙）</p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211027172540225.png" alt="image-20211027172540225"></p>
+<p>​    可能在一个盘里，就一只猪，其它用户都是NPC。</p>
+<p><img src="C:\Users\Administrator\AppData\Roaming\Typora\typora-user-images\image-20211027172556607.png" alt="image-20211027172556607"></p>
+<h3 id="犯罪定性"><a href="#犯罪定性" class="headerlink" title="犯罪定性"></a>犯罪定性</h3><p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211027172629614.png" alt="image-20211027172629614"></p>
+<p>​    事先取证。法庭认可此证据。<br>​    定罪。诈骗/非法经营。</p>
+<h2 id="支付宝流量海关风险对抗体系"><a href="#支付宝流量海关风险对抗体系" class="headerlink" title="支付宝流量海关风险对抗体系"></a>支付宝流量海关风险对抗体系</h2><p>​    介绍支付宝是如何对流量海关的风险管控，意思就是，支付宝是怎么从每天访问量上亿的流量数据（url链接）中找到恶意链接，并及时封堵此恶意链接。</p>
+<h3 id="流量海关孵化背景"><a href="#流量海关孵化背景" class="headerlink" title="流量海关孵化背景"></a>流量海关孵化背景</h3><p>​    为适配支付宝业务形态。</p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211027173254716.png" alt="image-20211027173254716"></p>
+<h3 id="支付流量海关技术架构"><a href="#支付流量海关技术架构" class="headerlink" title="支付流量海关技术架构"></a>支付流量海关技术架构</h3><p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211027173337942.png" alt="image-20211027173337942"></p>
+<h3 id="海关预警样例"><a href="#海关预警样例" class="headerlink" title="海关预警样例"></a>海关预警样例</h3><p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211027173400293.png" alt="image-20211027173400293"></p>
+<p>​    这儿有点意思，就是说，用户A支付的方式有异常，比如环境异常、设备异常、渠道异常、有作案前科的，只要满足有一条，就会自动阻止支付入口。</p>
+<h1 id="数据安全能力建设论坛"><a href="#数据安全能力建设论坛" class="headerlink" title="数据安全能力建设论坛"></a>数据安全能力建设论坛</h1><p><strong>标签：数据安全、企业信息安全建设、数据感知平台、APT</strong></p>
+<h2 id="内部威胁场景下的数据安全能力建设"><a href="#内部威胁场景下的数据安全能力建设" class="headerlink" title="内部威胁场景下的数据安全能力建设"></a>内部威胁场景下的数据安全能力建设</h2><h3 id="内部威胁场景案例"><a href="#内部威胁场景案例" class="headerlink" title="内部威胁场景案例"></a>内部威胁场景案例</h3><p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211027174409091.png" alt="image-20211027174409091"></p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211027174414052.png" alt="image-20211027174414052"></p>
+<h3 id="数据安全合规"><a href="#数据安全合规" class="headerlink" title="数据安全合规"></a>数据安全合规</h3><p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211027174432261.png" alt="image-20211027174432261"></p>
+<h3 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h3><p>​    基于业务流程的审计体系。</p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211027174459422.png" alt="image-20211027174459422"></p>
+<p>​    简单的说：1.要按照业务流程走，对企业内部的业务使用、传输、访问等操作有流程和管理，进行整体的风险监控。2.是支持合法合规的保护，按重要、敏感等级来划分，分别实行不同的风险监控。3.是能够支持安全预警和对风险的溯源。</p>
+<h2 id="数据感知体系"><a href="#数据感知体系" class="headerlink" title="数据感知体系"></a>数据感知体系</h2><h3 id="个人信息保护法"><a href="#个人信息保护法" class="headerlink" title="个人信息保护法"></a>个人信息保护法</h3><p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211027174741147.png" alt="image-20211027174741147"></p>
+<h3 id="行业矛盾"><a href="#行业矛盾" class="headerlink" title="行业矛盾"></a>行业矛盾</h3><p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211027174806465.png" alt="image-20211027174806465"></p>
+<p>​    总结：没人、没门、没钱、没场景，还害怕数据源的的丢失。</p>
+<h3 id="设计难点"><a href="#设计难点" class="headerlink" title="设计难点"></a>设计难点</h3><p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211027174959442.png" alt="image-20211027174959442"></p>
+<h2 id="APT事件分析"><a href="#APT事件分析" class="headerlink" title="APT事件分析"></a>APT事件分析</h2><h3 id="攻击还原过程"><a href="#攻击还原过程" class="headerlink" title="攻击还原过程"></a>攻击还原过程</h3><p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211027175122125.png" alt="image-20211027175122125"></p>
+<h3 id="样本扩展"><a href="#样本扩展" class="headerlink" title="样本扩展"></a>样本扩展</h3><p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211027175145426.png" alt="image-20211027175145426"></p>
+<h3 id="为什么是APT"><a href="#为什么是APT" class="headerlink" title="为什么是APT"></a>为什么是APT</h3><p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211027175207058.png" alt="image-20211027175207058"></p>
+<h3 id="APT最新活动"><a href="#APT最新活动" class="headerlink" title="APT最新活动"></a>APT最新活动</h3><p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211027175232969.png" alt="image-20211027175232969"></p>
+<p>​    <a href="%5Bhttps://ti.qianxin.com/apt/detail/5aa0eed8d70a3f07e3f73891?name=%E6%B5%B7%E8%8E%B2%E8%8A%B1&type=map%5D(https://ti.qianxin.com/apt/detail/5aa0eed8d70a3f07e3f73891?name=%E6%B5%B7%E8%8E%B2%E8%8A%B1&type=map)">海莲花</a></p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211027180430497.png" alt="image-20211027180430497"></p>
+<h2 id="威胁情报在企业中实践应用"><a href="#威胁情报在企业中实践应用" class="headerlink" title="威胁情报在企业中实践应用"></a>威胁情报在企业中实践应用</h2><h3 id="威胁大数据分析核心问题剖析"><a href="#威胁大数据分析核心问题剖析" class="headerlink" title="威胁大数据分析核心问题剖析"></a>威胁大数据分析核心问题剖析</h3><p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211028090823245.png" alt="image-20211028090823245"></p>
+<p>​    分别从数据标准、采集接口、宏观看资产以及鉴权管理。</p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211028090936831.png" alt="image-20211028090936831"></p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211028090948741.png" alt="image-20211028090948741"></p>
+<h3 id="威胁数据工作流程"><a href="#威胁数据工作流程" class="headerlink" title="威胁数据工作流程"></a>威胁数据工作流程</h3><p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211028091017016.png" alt="image-20211028091017016"></p>
+<h3 id="情报协同共享"><a href="#情报协同共享" class="headerlink" title="情报协同共享"></a>情报协同共享</h3><p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211028091053791.png" alt="image-20211028091053791"></p>
+<p>​    <strong>对一些指纹特征的识别技术</strong>，放大看，或许能抛砖引玉。</p>
+<h3 id="攻击事件-溯源"><a href="#攻击事件-溯源" class="headerlink" title="攻击事件-溯源"></a>攻击事件-溯源</h3><p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211028091145502.png" alt="image-20211028091145502"></p>
+<h1 id="白帽技术分论坛"><a href="#白帽技术分论坛" class="headerlink" title="白帽技术分论坛"></a>白帽技术分论坛</h1><p><strong>标签：主机安全、安卓安全、漏洞运营建设</strong></p>
+<h2 id="字节跳动主机安全建设分享"><a href="#字节跳动主机安全建设分享" class="headerlink" title="字节跳动主机安全建设分享"></a>字节跳动主机安全建设分享</h2><p>​    <a target="_blank" rel="noopener" href="https://bytedance.feishu.cn/file/boxcnOO9zeJc5ZlWUL0siQ28W1f">点击转至PPT链接</a></p>
+<h3 id="Who-is-Elkeid"><a href="#Who-is-Elkeid" class="headerlink" title="Who is Elkeid"></a>Who is Elkeid</h3><p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211028092022802.png" alt="image-20211028092022802"></p>
+<p>​    Elkeid就是升级版的、可用于捕获APT组织的、能检测rootkot的、并且具有类似rasp的实时检测技术的HIDS。号称百万级开源 HIDS 解决方案。（<a target="_blank" rel="noopener" href="https://paper.seebug.org/1566/%EF%BC%89">https://paper.seebug.org/1566/）</a></p>
+<h3 id="主机威胁来源"><a href="#主机威胁来源" class="headerlink" title="主机威胁来源"></a>主机威胁来源</h3><p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211028092052056.png" alt="image-20211028092052056"></p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211028092052056.png"></p>
+<p>​    以主机威胁来源作为切入点，并且给了开源项目的威胁数据采集（如图看，偏向底层采集）。</p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211028092146025.png" alt="image-20211028092146025"></p>
+<h3 id="Elkeid-数据一览"><a href="#Elkeid-数据一览" class="headerlink" title="Elkeid 数据一览"></a>Elkeid 数据一览</h3><p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211028092203363.png" alt="image-20211028092203363"></p>
+<p>​    看到他所分析的行为：文件行为、网络行为、进程行为、内核行为、rootkit和系统内建命令审计，并且具有日志分析功能。</p>
+<p>​    <strong>采集样本数据</strong>：</p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211028092241204.png" alt="image-20211028092241204"></p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211028092245801.png" alt="image-20211028092245801"></p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211028092251114.png" alt="image-20211028092251114"></p>
+<h3 id="识别威胁的第二步是什么？精准的策略"><a href="#识别威胁的第二步是什么？精准的策略" class="headerlink" title="识别威胁的第二步是什么？精准的策略"></a>识别威胁的第二步是什么？精准的策略</h3><p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211028092308976.png" alt="image-20211028092308976"></p>
+<p>​    重点在于规则引擎和模型框架。</p>
+<h3 id="如何让策略更加精准？"><a href="#如何让策略更加精准？" class="headerlink" title="如何让策略更加精准？"></a>如何让策略更加精准？</h3><p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211028092509312.png" alt="image-20211028092509312"></p>
+<h3 id="Kill-Chain"><a href="#Kill-Chain" class="headerlink" title="Kill-Chain"></a>Kill-Chain</h3><p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211028092525064.png" alt="image-20211028092525064"></p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211028092528892.png" alt="image-20211028092528892"></p>
+<p>​    利用杀伤链做策略精准的参照，即抓住攻击关键节点。</p>
+<h3 id="识别威胁的第三步是什么？高效的溯源"><a href="#识别威胁的第三步是什么？高效的溯源" class="headerlink" title="识别威胁的第三步是什么？高效的溯源"></a>识别威胁的第三步是什么？高效的溯源</h3><p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211028092555328.png" alt="image-20211028092555328"></p>
+<h3 id="溯源案例"><a href="#溯源案例" class="headerlink" title="溯源案例"></a>溯源案例</h3><p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211028092611233.png" alt="image-20211028092611233"></p>
+<p>​    源IP很重要，放在溯源第一步。</p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211028092620938.png" alt="image-20211028092620938"></p>
+<h3 id="Elkeid-Architecture"><a href="#Elkeid-Architecture" class="headerlink" title="Elkeid Architecture"></a>Elkeid Architecture</h3><p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211028092636682.png" alt="image-20211028092636682"></p>
+<h3 id="安全的本质是什么？"><a href="#安全的本质是什么？" class="headerlink" title="安全的本质是什么？"></a>安全的本质是什么？</h3><p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211028092655724.png" alt="image-20211028092655724"></p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211028092658771.png" alt="image-20211028092658771"></p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211028092702440.png" alt="image-20211028092702440"></p>
+<p>​    <strong>多注意第二点和第三点，绝非空谈（业务即安全，从业务建设安全）</strong></p>
+<h2 id="全面解析安卓Intent-Bridge"><a href="#全面解析安卓Intent-Bridge" class="headerlink" title="全面解析安卓Intent Bridge"></a>全面解析安卓Intent Bridge</h2><p>​    <a target="_blank" rel="noopener" href="https://bytedance.feishu.cn/file/boxcn1wl8bIFMtv9vKy8iNA7Bde">点击转至PPT链接</a></p>
+<h2 id="知彼：攻击者情报"><a href="#知彼：攻击者情报" class="headerlink" title="知彼：攻击者情报"></a>知彼：攻击者情报</h2><p>​    <a target="_blank" rel="noopener" href="https://bytedance.feishu.cn/file/boxcn1voMuRleY0N6jQygGXqIoV">点击转至PPT链接</a></p>
+<h2 id="SRC反哺企业安全治理"><a href="#SRC反哺企业安全治理" class="headerlink" title="SRC反哺企业安全治理"></a>SRC反哺企业安全治理</h2><p>​    <a target="_blank" rel="noopener" href="https://bytedance.feishu.cn/file/boxcngpt704FUxBxz8xzhHi5m9d">点击转至PPT链接</a></p>
+<h2 id="字节跳动漏洞运营实践分享"><a href="#字节跳动漏洞运营实践分享" class="headerlink" title="字节跳动漏洞运营实践分享"></a>字节跳动漏洞运营实践分享</h2><p>​    <a target="_blank" rel="noopener" href="https://bytedance.feishu.cn/file/boxcnUtFCQy3EwRaquwkkYgNwh1">点击转至PPT链接</a></p>
+
+    </div>
+
+    
+    
+    
+        
+
+  <div class="followme">
+    <p>欢迎关注我的其它发布渠道</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="https://gitee.com/cat-nineteen/blog/raw/master/imgs/guanzhu.png">
+            <span class="icon">
+              <i class="fab fa-weixin"></i>
+            </span>
+
+            <span class="label">WeChat</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/08/29/Redis(=%205.0.5)%E4%B8%BB%E4%BB%8E%E5%A4%8D%E5%88%B6%20RCE/" rel="prev" title="Redis(<= 5.0.5)主从复制 RCE">
+      <i class="fa fa-chevron-left"></i> Redis(<= 5.0.5)主从复制 RCE
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%89%93%E5%87%BB%E9%BB%91%E7%81%B0%E4%BA%A7%E7%BD%91%E7%BB%9C%E7%8A%AF%E7%BD%AA%E8%AE%BA%E5%9D%9B"><span class="nav-number">1.</span> <span class="nav-text">打击黑灰产网络犯罪论坛</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%89%93%E5%87%BB%E9%BB%91%E7%81%B0%E4%BA%A7"><span class="nav-number">1.1.</span> <span class="nav-text">打击黑灰产</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%A8%E7%BD%91%E9%87%87%E9%9B%86%EF%BC%88%E5%BB%BA%E7%AB%8B%E6%A0%B7%E6%9C%AC%E5%BA%93%EF%BC%89"><span class="nav-number">1.1.1.</span> <span class="nav-text">全网采集（建立样本库）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A7%A3%E6%9E%90%E6%89%93%E6%A0%87%EF%BC%88%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90%EF%BC%8C%E6%8C%96%E6%8E%98%E7%BB%86%E8%8A%82%E4%BF%A1%E6%81%AF%EF%BC%89"><span class="nav-number">1.1.2.</span> <span class="nav-text">解析打标（深度解析，挖掘细节信息）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%81%9A%E7%B1%BB%E5%88%86%E6%9E%90%EF%BC%88%E5%AE%B6%E6%97%8F%E7%B1%BB%E8%81%9A%E3%80%81%E5%9B%A2%E4%BC%99%E6%8C%96%E6%8E%98%EF%BC%89"><span class="nav-number">1.1.3.</span> <span class="nav-text">聚类分析（家族类聚、团伙挖掘）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BA%AF%E6%BA%90%E5%88%86%E6%9E%90%EF%BC%88%E5%AE%9A%E4%BD%8D%EF%BC%89"><span class="nav-number">1.1.4.</span> <span class="nav-text">溯源分析（定位）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%89%93%E5%87%BB%E6%96%B0%E5%9E%8B%E7%BD%91%E7%BB%9C%E7%8A%AF%E7%BD%AA%E7%9A%84%E5%AE%9E%E6%88%98%E8%BF%87%E7%A8%8B"><span class="nav-number">1.2.</span> <span class="nav-text">打击新型网络犯罪的实战过程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B5%8B%E8%AF%95%E6%96%B9%E6%B3%95"><span class="nav-number">1.2.1.</span> <span class="nav-text">测试方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%96%B0%E5%9E%8B%E7%BD%91%E7%BB%9C%E7%8A%AF%E7%BD%AA%E6%89%8B%E6%AE%B5"><span class="nav-number">1.2.2.</span> <span class="nav-text">新型网络犯罪手段</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%8A%AF%E7%BD%AA%E5%AE%9A%E6%80%A7"><span class="nav-number">1.2.3.</span> <span class="nav-text">犯罪定性</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%94%AF%E4%BB%98%E5%AE%9D%E6%B5%81%E9%87%8F%E6%B5%B7%E5%85%B3%E9%A3%8E%E9%99%A9%E5%AF%B9%E6%8A%97%E4%BD%93%E7%B3%BB"><span class="nav-number">1.3.</span> <span class="nav-text">支付宝流量海关风险对抗体系</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B5%81%E9%87%8F%E6%B5%B7%E5%85%B3%E5%AD%B5%E5%8C%96%E8%83%8C%E6%99%AF"><span class="nav-number">1.3.1.</span> <span class="nav-text">流量海关孵化背景</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%94%AF%E4%BB%98%E6%B5%81%E9%87%8F%E6%B5%B7%E5%85%B3%E6%8A%80%E6%9C%AF%E6%9E%B6%E6%9E%84"><span class="nav-number">1.3.2.</span> <span class="nav-text">支付流量海关技术架构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B5%B7%E5%85%B3%E9%A2%84%E8%AD%A6%E6%A0%B7%E4%BE%8B"><span class="nav-number">1.3.3.</span> <span class="nav-text">海关预警样例</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E5%AE%89%E5%85%A8%E8%83%BD%E5%8A%9B%E5%BB%BA%E8%AE%BE%E8%AE%BA%E5%9D%9B"><span class="nav-number">2.</span> <span class="nav-text">数据安全能力建设论坛</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%86%85%E9%83%A8%E5%A8%81%E8%83%81%E5%9C%BA%E6%99%AF%E4%B8%8B%E7%9A%84%E6%95%B0%E6%8D%AE%E5%AE%89%E5%85%A8%E8%83%BD%E5%8A%9B%E5%BB%BA%E8%AE%BE"><span class="nav-number">2.1.</span> <span class="nav-text">内部威胁场景下的数据安全能力建设</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%86%85%E9%83%A8%E5%A8%81%E8%83%81%E5%9C%BA%E6%99%AF%E6%A1%88%E4%BE%8B"><span class="nav-number">2.1.1.</span> <span class="nav-text">内部威胁场景案例</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E5%AE%89%E5%85%A8%E5%90%88%E8%A7%84"><span class="nav-number">2.1.2.</span> <span class="nav-text">数据安全合规</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88"><span class="nav-number">2.1.3.</span> <span class="nav-text">解决方案</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E6%84%9F%E7%9F%A5%E4%BD%93%E7%B3%BB"><span class="nav-number">2.2.</span> <span class="nav-text">数据感知体系</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%AA%E4%BA%BA%E4%BF%A1%E6%81%AF%E4%BF%9D%E6%8A%A4%E6%B3%95"><span class="nav-number">2.2.1.</span> <span class="nav-text">个人信息保护法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A1%8C%E4%B8%9A%E7%9F%9B%E7%9B%BE"><span class="nav-number">2.2.2.</span> <span class="nav-text">行业矛盾</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AE%BE%E8%AE%A1%E9%9A%BE%E7%82%B9"><span class="nav-number">2.2.3.</span> <span class="nav-text">设计难点</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#APT%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90"><span class="nav-number">2.3.</span> <span class="nav-text">APT事件分析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%94%BB%E5%87%BB%E8%BF%98%E5%8E%9F%E8%BF%87%E7%A8%8B"><span class="nav-number">2.3.1.</span> <span class="nav-text">攻击还原过程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A0%B7%E6%9C%AC%E6%89%A9%E5%B1%95"><span class="nav-number">2.3.2.</span> <span class="nav-text">样本扩展</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E6%98%AFAPT"><span class="nav-number">2.3.3.</span> <span class="nav-text">为什么是APT</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#APT%E6%9C%80%E6%96%B0%E6%B4%BB%E5%8A%A8"><span class="nav-number">2.3.4.</span> <span class="nav-text">APT最新活动</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A8%81%E8%83%81%E6%83%85%E6%8A%A5%E5%9C%A8%E4%BC%81%E4%B8%9A%E4%B8%AD%E5%AE%9E%E8%B7%B5%E5%BA%94%E7%94%A8"><span class="nav-number">2.4.</span> <span class="nav-text">威胁情报在企业中实践应用</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A8%81%E8%83%81%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%88%86%E6%9E%90%E6%A0%B8%E5%BF%83%E9%97%AE%E9%A2%98%E5%89%96%E6%9E%90"><span class="nav-number">2.4.1.</span> <span class="nav-text">威胁大数据分析核心问题剖析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A8%81%E8%83%81%E6%95%B0%E6%8D%AE%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B"><span class="nav-number">2.4.2.</span> <span class="nav-text">威胁数据工作流程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%83%85%E6%8A%A5%E5%8D%8F%E5%90%8C%E5%85%B1%E4%BA%AB"><span class="nav-number">2.4.3.</span> <span class="nav-text">情报协同共享</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6-%E6%BA%AF%E6%BA%90"><span class="nav-number">2.4.4.</span> <span class="nav-text">攻击事件-溯源</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%99%BD%E5%B8%BD%E6%8A%80%E6%9C%AF%E5%88%86%E8%AE%BA%E5%9D%9B"><span class="nav-number">3.</span> <span class="nav-text">白帽技术分论坛</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AD%97%E8%8A%82%E8%B7%B3%E5%8A%A8%E4%B8%BB%E6%9C%BA%E5%AE%89%E5%85%A8%E5%BB%BA%E8%AE%BE%E5%88%86%E4%BA%AB"><span class="nav-number">3.1.</span> <span class="nav-text">字节跳动主机安全建设分享</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Who-is-Elkeid"><span class="nav-number">3.1.1.</span> <span class="nav-text">Who is Elkeid</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%BB%E6%9C%BA%E5%A8%81%E8%83%81%E6%9D%A5%E6%BA%90"><span class="nav-number">3.1.2.</span> <span class="nav-text">主机威胁来源</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Elkeid-%E6%95%B0%E6%8D%AE%E4%B8%80%E8%A7%88"><span class="nav-number">3.1.3.</span> <span class="nav-text">Elkeid 数据一览</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AF%86%E5%88%AB%E5%A8%81%E8%83%81%E7%9A%84%E7%AC%AC%E4%BA%8C%E6%AD%A5%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F%E7%B2%BE%E5%87%86%E7%9A%84%E7%AD%96%E7%95%A5"><span class="nav-number">3.1.4.</span> <span class="nav-text">识别威胁的第二步是什么？精准的策略</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E8%AE%A9%E7%AD%96%E7%95%A5%E6%9B%B4%E5%8A%A0%E7%B2%BE%E5%87%86%EF%BC%9F"><span class="nav-number">3.1.5.</span> <span class="nav-text">如何让策略更加精准？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Kill-Chain"><span class="nav-number">3.1.6.</span> <span class="nav-text">Kill-Chain</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AF%86%E5%88%AB%E5%A8%81%E8%83%81%E7%9A%84%E7%AC%AC%E4%B8%89%E6%AD%A5%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F%E9%AB%98%E6%95%88%E7%9A%84%E6%BA%AF%E6%BA%90"><span class="nav-number">3.1.7.</span> <span class="nav-text">识别威胁的第三步是什么？高效的溯源</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BA%AF%E6%BA%90%E6%A1%88%E4%BE%8B"><span class="nav-number">3.1.8.</span> <span class="nav-text">溯源案例</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Elkeid-Architecture"><span class="nav-number">3.1.9.</span> <span class="nav-text">Elkeid Architecture</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E5%85%A8%E7%9A%84%E6%9C%AC%E8%B4%A8%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="nav-number">3.1.10.</span> <span class="nav-text">安全的本质是什么？</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%A8%E9%9D%A2%E8%A7%A3%E6%9E%90%E5%AE%89%E5%8D%93Intent-Bridge"><span class="nav-number">3.2.</span> <span class="nav-text">全面解析安卓Intent Bridge</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9F%A5%E5%BD%BC%EF%BC%9A%E6%94%BB%E5%87%BB%E8%80%85%E6%83%85%E6%8A%A5"><span class="nav-number">3.3.</span> <span class="nav-text">知彼：攻击者情报</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SRC%E5%8F%8D%E5%93%BA%E4%BC%81%E4%B8%9A%E5%AE%89%E5%85%A8%E6%B2%BB%E7%90%86"><span class="nav-number">3.4.</span> <span class="nav-text">SRC反哺企业安全治理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AD%97%E8%8A%82%E8%B7%B3%E5%8A%A8%E6%BC%8F%E6%B4%9E%E8%BF%90%E8%90%A5%E5%AE%9E%E8%B7%B5%E5%88%86%E4%BA%AB"><span class="nav-number">3.5.</span> <span class="nav-text">字节跳动漏洞运营实践分享</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">longer</p>
+  <div class="site-description" itemprop="description">不愿分享小故事的脚本小子成不了心灵骇客！</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">7</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+  </nav>
+</div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      友链
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://dropann.github.io/" title="https:&#x2F;&#x2F;dropann.github.io&#x2F;" rel="noopener" target="_blank">DropAnn</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.ddosi.org/" title="https:&#x2F;&#x2F;www.ddosi.org&#x2F;" rel="noopener" target="_blank">雨苁</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://websec.readthedocs.io/" title="https:&#x2F;&#x2F;websec.readthedocs.io&#x2F;" rel="noopener" target="_blank">WEB安全学习笔记</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">longer</span>
+</div>
+  <div class="powered-by">由 <a href="https://gitee.com/cat-nineteen/blog/raw/master/imgs/guanzhu.png" class="theme-link" rel="noopener" target="_blank">cat-nineteen</a> @ <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">longer</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
