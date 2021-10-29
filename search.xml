@@ -3,9 +3,9 @@
   <entry>
     <title>F5 BIG-IP 远程代码执行漏洞</title>
     <url>/2021/08/25/F5%20BIG-IP%20%E8%BF%9C%E7%A8%8B%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E/</url>
-    <content><![CDATA[<h2 id="漏洞描述"><a href="#漏洞描述" class="headerlink" title="漏洞描述"></a>漏洞描述</h2><blockquote>
+    <content><![CDATA[<h2 id="漏洞描述"><a href="#漏洞描述" class="headerlink" title="漏洞描述"></a>漏洞描述</h2><hr>
 <p>未授权的远程攻击者通过向漏洞页面发送特制的请求包，可以造成任意 Java 代码执行。进而控制 <code>F5 BIG-IP</code> 的全部功能，包括但不限于: 执行任意系统命令、开启/禁用服务、创建/删除服务器端文件等。该漏洞影响控制面板受影响，不影响数据面板。</p>
-</blockquote>
+<hr>
 <span id="more"></span>
 
 <h2 id="影响版本"><a href="#影响版本" class="headerlink" title="影响版本"></a>影响版本</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">BIG-IP 15.x: 15.1.0/15.0.0</span><br><span class="line">BIG-IP 14.x: 14.1.0 ~ 14.1.2</span><br><span class="line">BIG-IP 13.x: 13.1.0 ~ 13.1.3</span><br><span class="line">BIG-IP 12.x: 12.1.0 ~ 12.1.5</span><br><span class="line">BIG-IP 11.x: 11.6.1 ~ 11.6.5</span><br></pre></td></tr></table></figure>
@@ -66,9 +66,9 @@
   <entry>
     <title>Tomcat 任意上传漏洞(CVE-2017-12615)</title>
     <url>/2021/08/25/Tomcat%20%E4%BB%BB%E6%84%8F%E4%B8%8A%E4%BC%A0%E6%BC%8F%E6%B4%9E(CVE-2017-12615)/</url>
-    <content><![CDATA[<h2 id="漏洞描述"><a href="#漏洞描述" class="headerlink" title="漏洞描述"></a>漏洞描述</h2><blockquote>
+    <content><![CDATA[<h2 id="漏洞描述"><a href="#漏洞描述" class="headerlink" title="漏洞描述"></a>漏洞描述</h2><hr>
 <p>2017年9月19日，Apache Tomcat官方确认并修复了两个高危漏洞，其中就有远程代码执行漏洞(CVE-2017-12615)。当 启用了HTTP PUT请求方法（例如，将 readonly 初始化参数由默认值设置为 false），攻击者将有可能可通过精心构造的攻击请求数据包向服务器上传包含任意代码的 JSP 文件，JSP文件中的恶意代码将能被服务器执行。导致服务器上的数据泄露或获取服务器权限。</p>
-</blockquote>
+<hr>
 <span id="more"></span>
 
 <h2 id="影响版本"><a href="#影响版本" class="headerlink" title="影响版本"></a>影响版本</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Apache Tomcat 7.0.0 - 7.0.81</span><br></pre></td></tr></table></figure>
@@ -128,9 +128,9 @@
   <entry>
     <title>JBoss 4.x 反序列化漏洞(CVE-2017-7504)</title>
     <url>/2021/08/27/JBoss%204.x%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%BC%8F%E6%B4%9E(CVE-2017-7504)/</url>
-    <content><![CDATA[<h2 id="漏洞描述"><a href="#漏洞描述" class="headerlink" title="漏洞描述"></a>漏洞描述</h2><blockquote>
+    <content><![CDATA[<h2 id="漏洞描述"><a href="#漏洞描述" class="headerlink" title="漏洞描述"></a>漏洞描述</h2><hr>
 <p>JBoss AS 4.x及之前版本中，JbossMQ实现过程的JMS over HTTP Invocation Layer的HTTPServerILServlet.java文件存在反序列化漏洞，远程攻击者可借助特制的序列化数据利用该漏洞执行任意代码。</p>
-</blockquote>
+<hr>
 <span id="more"></span>
 
 <h2 id="影响版本"><a href="#影响版本" class="headerlink" title="影响版本"></a>影响版本</h2><ul>
@@ -179,13 +179,15 @@
   <entry>
     <title>docker安装与使用</title>
     <url>/2021/08/27/docker%E5%AE%89%E8%A3%85%E4%B8%8E%E4%BD%BF%E7%94%A8/</url>
-    <content><![CDATA[<h2 id="描述"><a href="#描述" class="headerlink" title="描述"></a>描述</h2><p>Docker 包括三个基本概念:</p>
+    <content><![CDATA[<h2 id="描述"><a href="#描述" class="headerlink" title="描述"></a>描述</h2><hr>
+<p>Docker 包括三个基本概念:</p>
 <ul>
 <li><strong>镜像（Image）</strong>：Docker 镜像（Image），就相当于是一个 root 文件系统。比如官方镜像 ubuntu:16.04 就包含了完整的一套 Ubuntu16.04 最小系统的 root 文件系统。</li>
 <li><strong>容器（Container）</strong>：镜像（Image）和容器（Container）的关系，就像是面向对象程序设计中的类和实例一样，镜像是静态的定义，容器是镜像运行时的实体。容器可以被创建、启动、停止、删除、暂停等。</li>
 <li><strong>仓库（Repository）</strong>：仓库可看成一个代码控制中心，用来保存镜像。</li>
 </ul>
 <p>Docker 使用客户端-服务器 (C/S) 架构模式，使用远程API来管理和创建Docker容器。</p>
+<hr>
 <span id="more"></span>
 
 <ul>
@@ -285,13 +287,14 @@
   <entry>
     <title>Redis(&lt;= 5.0.5)主从复制 RCE</title>
     <url>/2021/08/29/Redis(=%205.0.5)%E4%B8%BB%E4%BB%8E%E5%A4%8D%E5%88%B6%20RCE/</url>
-    <content><![CDATA[<h2 id="漏洞描述"><a href="#漏洞描述" class="headerlink" title="漏洞描述"></a>漏洞描述</h2><blockquote>
+    <content><![CDATA[<h2 id="漏洞描述"><a href="#漏洞描述" class="headerlink" title="漏洞描述"></a>漏洞描述</h2><hr>
 <p>在2019年7月7日结束的WCTF2019 Final上，LC/BC的成员Pavel Toporkov在分享会上介绍了一种关于redis新版本的RCE利用方式，比起以前的利用方式来说，这种利用方式更为通用，危害也更大。</p>
-</blockquote>
 <ul>
-<li><p>详情参考：<a href="https://2018.zeronights.ru/wp-content/uploads/materials/15-redis-post-exploitation.pdf">Pavel Toporkov</a></p>
-<span id="more"></span></li>
+<li>详情参考：<a href="https://2018.zeronights.ru/wp-content/uploads/materials/15-redis-post-exploitation.pdf">Pavel Toporkov</a></li>
 </ul>
+<hr>
+<span id="more"></span>
+
 <h2 id="影响版本"><a href="#影响版本" class="headerlink" title="影响版本"></a>影响版本</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Redis &lt;= 5.0.5</span><br></pre></td></tr></table></figure>
 
 <h2 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h2><h3 id="doker搭建"><a href="#doker搭建" class="headerlink" title="doker搭建"></a>doker搭建</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 环境</span><br><span class="line">攻击机：kali</span><br><span class="line">受害机：centos-docker</span><br></pre></td></tr></table></figure>
@@ -328,9 +331,9 @@
   <entry>
     <title>Vulfocus 漏洞环境搭建</title>
     <url>/2021/08/29/Vulfocus%20%E6%BC%8F%E6%B4%9E%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/</url>
-    <content><![CDATA[<h2 id="描述"><a href="#描述" class="headerlink" title="描述"></a>描述</h2><blockquote>
+    <content><![CDATA[<h2 id="描述"><a href="#描述" class="headerlink" title="描述"></a>描述</h2><hr>
 <p>Vulfocus是一个漏洞集成平台，所以可以无限添加漏洞环境并且没有限制。因为漏洞环境是docker镜像，所以每次重启动漏洞环境之前的环境都会还原，不会出现因对环境造成的破坏而下一次启动环境失败的问题。</p>
-</blockquote>
+<hr>
 <span id="more"></span>
 
 <h2 id="搭建"><a href="#搭建" class="headerlink" title="搭建"></a>搭建</h2><p>获取docker镜像，执行命令;</p>
@@ -359,12 +362,12 @@
   <entry>
     <title>成都CCS网络安全大会</title>
     <url>/2021/10/27/%E6%88%90%E9%83%BDCCS%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E5%A4%A7%E4%BC%9A/</url>
-    <content><![CDATA[<blockquote>
+    <content><![CDATA[<hr>
 <p>秋风起，暑却未消停。蓉城的苍穹依旧云卷天舒，秋却不是四年前的秋，我记忆里的秋应该是有雨的，凉气逼得外出的人们不得不多加几件外套。今年的秋暑意未曾停歇，火红的骄阳不舍这似水的流年。是啊，时间已悄然走过了四年，一经辗转便奔向第五个年头。</p>
 <p>我单不知，人在一段不长也不短的时间里，可以经历无数次的选择，在每一个不起眼的日子里作出的每一个不起眼的决定，竟能发生在未来！舍弃文笔从业网安或许并非我意，也未曾作出从蓉城奔赴鹭岛的选择，我没有过抉择，却得到了答案。</p>
 <p>于是，我在时间的海岸线上拾起了回忆的贝壳：也许是在学校的某一个不起眼的夜晚，教室里坐着有三两个同学，异口同声的说：“打进CTF线下大赛！成为远近闻名的黑客！”；也许是在每一个不起眼的课堂，老师在台上对着台下疯狂输出的同时，我在台下开着电脑冲刷着CTF的赛题……</p>
 <p>彼时的我，走在蓉城的某个街头角落，踏行在眼前的路上；此时的我，站在鹭岛的码头上，看着眼前浪花地拍打。我仿佛见到了以前的自己，那个不是很努力，却又不肯轻易言弃、熟悉又陌生的身影……</p>
-</blockquote>
+<hr>
 <h1 id="打击黑灰产网络犯罪论坛"><a href="#打击黑灰产网络犯罪论坛" class="headerlink" title="打击黑灰产网络犯罪论坛"></a>打击黑灰产网络犯罪论坛</h1><p><strong>标签：黑灰产、网络诈骗、大数据分析、自动化流程处置</strong></p>
 <span id="more"></span>
 
@@ -485,11 +488,13 @@
   <entry>
     <title>Arpspoof安装与使用</title>
     <url>/2021/10/29/Arpspoof%E5%AE%89%E8%A3%85%E4%B8%8E%E4%BD%BF%E7%94%A8/</url>
-    <content><![CDATA[<h2 id="描述"><a href="#描述" class="headerlink" title="描述"></a>描述</h2><p>Arpspoof是dsniff的一个组件，主要用于进行arp欺骗使用。</p>
+    <content><![CDATA[<h2 id="描述"><a href="#描述" class="headerlink" title="描述"></a>描述</h2><hr>
+<p>Arpspoof是dsniff的一个组件，主要用于进行arp欺骗使用。</p>
 <ul>
 <li>Driftnet官网：<a href="http://www.ex-parrot.com/~chris/driftnet/">http://www.ex-parrot.com/~chris/driftnet/</a></li>
 <li>详情参考：<a href="https://blog.csdn.net/qq_25147521/article/details/103321755">https://blog.csdn.net/qq_25147521/article/details/103321755</a></li>
 </ul>
+<hr>
 <span id="more"></span>
 
 <h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><h3 id="Centos7安装arpspoof"><a href="#Centos7安装arpspoof" class="headerlink" title="Centos7安装arpspoof"></a>Centos7安装arpspoof</h3><p>下面是需要的所有依赖包，yum源都有;</p>
@@ -533,10 +538,10 @@
   <entry>
     <title>Apache Flink任意Jar包上传RCE</title>
     <url>/2021/10/29/Apache%20Flink%E4%BB%BB%E6%84%8FJar%E5%8C%85%E4%B8%8A%E4%BC%A0RCE/</url>
-    <content><![CDATA[<h2 id="漏洞描述"><a href="#漏洞描述" class="headerlink" title="漏洞描述"></a>漏洞描述</h2><blockquote>
+    <content><![CDATA[<h2 id="漏洞描述"><a href="#漏洞描述" class="headerlink" title="漏洞描述"></a>漏洞描述</h2><hr>
 <p>Apache Flink是由Apache软件基金会开发的开源流处理框架，其核心是用Java和Scala编写的分布式流数据流引擎。Flink以数据并行和流水线方式执行任意流数据程序，Flink的流水线运行时系统可以执行批处理和流处理程序。</p>
 <p>有安全研究员公开了一个Apache Flink的任意Jar包上传导致远程代码执行的漏洞。攻击者只需要自己定制一个恶意jar上传，即可达到攻击目的。</p>
-</blockquote>
+<hr>
 <span id="more"></span>
 
 <h2 id="影响版本"><a href="#影响版本" class="headerlink" title="影响版本"></a>影响版本</h2><hr>
