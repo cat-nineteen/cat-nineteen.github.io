@@ -37,7 +37,7 @@
 <meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20210829112321560.png">
 <meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20210830114420015.png">
 <meta property="article:published_time" content="2021-08-27T05:58:27.481Z">
-<meta property="article:modified_time" content="2021-10-29T10:12:25.261Z">
+<meta property="article:modified_time" content="2021-11-05T01:55:44.783Z">
 <meta property="article:author" content="longer">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20210829115850233.png">
@@ -215,6 +215,8 @@
         </h1>
 
         <div class="post-meta">
+
+          
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="far fa-calendar"></i>
@@ -228,7 +230,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-10-29 18:12:25" itemprop="dateModified" datetime="2021-10-29T18:12:25+08:00">2021-10-29</time>
+                <time title="修改时间：2021-11-05 09:55:44" itemprop="dateModified" datetime="2021-11-05T09:55:44+08:00">2021-11-05</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -349,7 +351,7 @@
 <blockquote>
 <p>容器内的进程是运行在一个隔离的环境里，使用起来，就好像是在一个独立于宿主的系统下操作一样</p>
 </blockquote>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">docker ps			<span class="comment">#查看所有启动的容器（若查看所有的容器包括已经关闭,添加-a参数即可）</span></span><br><span class="line">docker inspect ID	<span class="comment">#查看容器信息（数据卷等 -&gt; &quot;Mounts&quot;）</span></span><br><span class="line">docker stats ID		<span class="comment">#查看Docker状态</span></span><br><span class="line">docker logs ID		<span class="comment">#查看容器日志（报错和命令）</span></span><br><span class="line"></span><br><span class="line">docker run -it -d --name ubuntu_wintrysec -p 8088:80 ubuntu	</span><br><span class="line"><span class="comment">#运行Docker镜像</span></span><br><span class="line"><span class="comment">#-d	守护态运行，不直接把执行命令的结果输出在当前宿主机下</span></span><br><span class="line"><span class="comment">#--name参数为自定义容器名</span></span><br><span class="line"><span class="comment">#-p参数为指定端口映射、后者为容器的端口(我们访问Docker的宿主机8080端口)</span></span><br><span class="line"><span class="comment">#成功后台运行后会返回一个容器的id，只需要记住前两位即可</span></span><br><span class="line"></span><br><span class="line">docker <span class="built_in">exec</span> -it ID bash	</span><br><span class="line"><span class="comment">#进入一个正在运行的容器的shell，容器id前4位就行,或者容器名也行</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">exit</span>				<span class="comment">#退出容器</span></span><br><span class="line">docker stop ID		<span class="comment">#停止容器运行，写容器名也行，start是开启</span></span><br><span class="line">docker rm ID		<span class="comment">#删除容器</span></span><br><span class="line">docker rm `docker ps -a -q`		<span class="comment">#删除所有已经关闭的容器，-f能把正在运行的也关闭</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">docker ps			<span class="comment">#查看所有启动的容器（若查看所有的容器包括已经关闭,添加-a参数即可）</span></span><br><span class="line">docker inspect ID	<span class="comment">#查看容器信息（数据卷等 -&gt; &quot;Mounts&quot;）</span></span><br><span class="line">docker stats ID		<span class="comment">#查看Docker状态</span></span><br><span class="line">docker logs ID		<span class="comment">#查看容器日志（报错和命令）</span></span><br><span class="line"></span><br><span class="line">docker run -it -d --name ubuntu_wintrysec -p 8088:80 ubuntu	</span><br><span class="line"><span class="comment">#运行Docker镜像</span></span><br><span class="line"><span class="comment">#-d	守护态运行，不直接把执行命令的结果输出在当前宿主机下</span></span><br><span class="line"><span class="comment">#--name参数为自定义容器名</span></span><br><span class="line"><span class="comment">#-p参数为指定端口映射、后者为容器的端口(我们访问Docker的宿主机8080端口)</span></span><br><span class="line"><span class="comment">#成功后台运行后会返回一个容器的id，只需要记住前两位即可</span></span><br><span class="line"></span><br><span class="line">docker <span class="built_in">exec</span> -it ID bash	</span><br><span class="line"><span class="comment">#进入一个正在运行的容器的shell，容器id前4位就行,或者容器名也行</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">exit</span>				<span class="comment">#退出容器</span></span><br><span class="line">docker stop ID		<span class="comment">#停止容器运行，写容器名也行，start是开启</span></span><br><span class="line">docker rm ID		<span class="comment">#删除容器</span></span><br><span class="line">docker rm `docker ps -a -q`		<span class="comment">#删除所有已经关闭的容器，-f能把正在运行的也关闭</span></span><br><span class="line"></span><br><span class="line">docker stop `docker ps -aq`    <span class="comment">#停止所有容器</span></span><br><span class="line">docker rm `docker ps -aq`      <span class="comment">#删除所有容器</span></span><br></pre></td></tr></table></figure>
 
 
     </div>
@@ -464,14 +466,14 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">10</span>
+          <span class="site-state-item-count">21</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-count">6</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
   </nav>

