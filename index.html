@@ -277,7 +277,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2021/12/06/IIS6.0%E7%BC%93%E5%AD%98%E5%8C%BA%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E(CVE-2017-7269)%20/">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/12/07/OpenSSH%E5%91%BD%E4%BB%A4%E6%B3%A8%E5%85%A5%E6%BC%8F%E6%B4%9E(CVE-2020-15778)/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -291,7 +291,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/2021/12/06/IIS6.0%E7%BC%93%E5%AD%98%E5%8C%BA%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E(CVE-2017-7269)%20/" class="post-title-link" itemprop="url">IIS6.0缓存区溢出漏洞(CVE-2017-7269)</a>
+            <a href="/2021/12/07/OpenSSH%E5%91%BD%E4%BB%A4%E6%B3%A8%E5%85%A5%E6%BC%8F%E6%B4%9E(CVE-2020-15778)/" class="post-title-link" itemprop="url">OpenSSH命令注入漏洞(CVE-2020-15778)</a>
         </h2>
 
         <div class="post-meta">
@@ -304,7 +304,7 @@
               <span class="post-meta-item-text">发表于</span>
               
 
-              <time title="创建时间：2021-12-06 14:23:12 / 修改时间：21:02:47" itemprop="dateCreated datePublished" datetime="2021-12-06T14:23:12+08:00">2021-12-06</time>
+              <time title="创建时间：2021-12-07 14:04:46 / 修改时间：14:11:22" itemprop="dateCreated datePublished" datetime="2021-12-07T14:04:46+08:00">2021-12-07</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -312,7 +312,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/WEB%E5%AE%89%E5%85%A8/" itemprop="url" rel="index"><span itemprop="name">WEB安全</span></a>
+                  <a href="/categories/%E4%B8%BB%E6%9C%BA%E5%AE%89%E5%85%A8/" itemprop="url" rel="index"><span itemprop="name">主机安全</span></a>
                 </span>
             </span>
 
@@ -329,12 +329,11 @@
       
           <h2 id="漏洞描述"><a href="#漏洞描述" class="headerlink" title="漏洞描述"></a>漏洞描述</h2><hr>
 <p><strong>声明：文中所涉及的技术、思路和工具仅供以安全为目的的学习交流使用，任何人不得将其用于非法用途以及盈利等目的，否则后果自行承担！</strong></p>
-<p>IIS6.0开启Webdav服务的服务器被爆存在缓存区溢出漏洞导致远程代码随意执行，目前针对Windows Server 2003 R2 可以稳定利用。</p>
-<p>参考：<a target="_blank" rel="noopener" href="https://blog.csdn.net/Fly_hps/article/details/79568430">https://blog.csdn.net/Fly_hps/article/details/79568430</a></p>
+<p>对于用户来说，ssh被阻止，但authorized_keys文件中的命令选项允许使用scp的情况。您可以绕过此限制并在远程服务器上执行命令。也就是说，实际中通过各种手段获取到了ssh的用户密码，但是不允许ssh连接，或者ip等各种限制，可以尝试此漏洞进行利用。参考：<a target="_blank" rel="noopener" href="https://www.hackliu.com/?p=468">https://www.hackliu.com/?p=468</a></p>
 <hr>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/2021/12/06/IIS6.0%E7%BC%93%E5%AD%98%E5%8C%BA%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E(CVE-2017-7269)%20/#more" rel="contents">
+              <a class="btn" href="/2021/12/07/OpenSSH%E5%91%BD%E4%BB%A4%E6%B3%A8%E5%85%A5%E6%BC%8F%E6%B4%9E(CVE-2020-15778)/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
